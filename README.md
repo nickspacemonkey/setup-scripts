@@ -39,6 +39,9 @@ directory if necessary, and then performs these steps:
    `~/.local/state/setup-scripts/backups`, private to the selected user.
 6. Stows the configuration into the selected user's home directory.
 
+Conflict handling includes files, leaf symlinks, and foreign symlinks in
+intermediate directory components.
+
 Run the setup as a normal user. Individual commands request `sudo` access when
 needed.
 

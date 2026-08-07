@@ -20,15 +20,61 @@ STOW_SOURCE_ROOT="$TARGET_HOME/.local/share/setup-scripts"
 BACKUP_ROOT="$TARGET_HOME/.local/state/setup-scripts/backups/$(date +%Y%m%d-%H%M%S)-$$"
 backup_created=0
 
+backup_target() {
+    local target_path="$1"
+    local source_name="$2"
+    local relative_path="$3"
+    local backup_path="$BACKUP_ROOT/$source_name/$relative_path"
+
+    sudo install -d -m 0700 \
+        -o "$TARGET_USER" \
+        -g "$TARGET_GROUP" \
+        "$(dirname "$backup_path")"
+    sudo mv -- "$target_path" "$backup_path"
+    sudo chown -h "$TARGET_USER:$TARGET_GROUP" "$backup_path"
+    backup_created=1
+    echo "Backed up $target_path to $backup_path"
+}
+
 backup_conflicts() {
     local source_root="$1"
     local source_name="$2"
-    local source_path relative_path target_path backup_path
+    local source_path relative_path target_path
     local source_real target_real
+    local parent_path source_parent target_parent source_parent_real target_parent_real
+    local -a parent_paths
 
     while IFS= read -r -d '' source_path; do
         relative_path="${source_path#"$source_root"/}"
         target_path="$TARGET_HOME/$relative_path"
+
+        parent_paths=()
+        parent_path="$(dirname -- "$relative_path")"
+        while [[ "$parent_path" != "." ]] && [[ "$parent_path" != "/" ]]; do
+            parent_paths=("$parent_path" "${parent_paths[@]}")
+            parent_path="$(dirname -- "$parent_path")"
+        done
+
+        for parent_path in "${parent_paths[@]}"; do
+            source_parent="$source_root/$parent_path"
+            target_parent="$TARGET_HOME/$parent_path"
+
+            if [[ -L "$target_parent" ]]; then
+                source_parent_real="$(readlink -f -- "$source_parent" || true)"
+                target_parent_real="$(readlink -f -- "$target_parent" || true)"
+                if [[ -n "$source_parent_real" ]] && [[ "$target_parent_real" == "$source_parent_real" ]]; then
+                    continue
+                fi
+
+                backup_target "$target_parent" "$source_name" "$parent_path"
+                break
+            fi
+
+            if [[ -e "$target_parent" ]] && [[ ! -d "$target_parent" ]]; then
+                backup_target "$target_parent" "$source_name" "$parent_path"
+                break
+            fi
+        done
 
         if [[ ! -e "$target_path" ]] && [[ ! -L "$target_path" ]]; then
             continue
@@ -36,19 +82,11 @@ backup_conflicts() {
 
         source_real="$(readlink -f -- "$source_path" || true)"
         target_real="$(readlink -f -- "$target_path" || true)"
-        if [[ -L "$target_path" ]] && [[ -n "$source_real" ]] && [[ "$target_real" == "$source_real" ]]; then
+        if [[ -n "$source_real" ]] && [[ "$target_real" == "$source_real" ]]; then
             continue
         fi
 
-        backup_path="$BACKUP_ROOT/$source_name/$relative_path"
-        sudo install -d -m 0700 \
-            -o "$TARGET_USER" \
-            -g "$TARGET_GROUP" \
-            "$(dirname "$backup_path")"
-        sudo mv -- "$target_path" "$backup_path"
-        sudo chown -h "$TARGET_USER:$TARGET_GROUP" "$backup_path"
-        backup_created=1
-        echo "Backed up $target_path to $backup_path"
+        backup_target "$target_path" "$source_name" "$relative_path"
     done < <(find "$source_root" \( -type f -o -type l \) -print0)
 }
 
