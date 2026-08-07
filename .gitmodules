@@ -1,0 +1,6 @@
+[submodule "dotfiles"]
+	path = dotfiles
+	url = https://github.com/nickspacemonkey/dotfiles
+[submodule "fishfiles"]
+	path = fishfiles
+	url = https://github.com/nickspacemonkey/fishfiles
