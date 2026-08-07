@@ -4,7 +4,8 @@ set -uo pipefail
 shopt -s nullglob
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-INSTALL_SCRIPT="$SCRIPT_DIR/install_tools.sh"
+HELPER_DIR="$SCRIPT_DIR/scripts"
+INSTALL_SCRIPT="$HELPER_DIR/install_tools.sh"
 
 read -r -p "Enter the username to configure: " TARGET_USER
 
@@ -62,11 +63,11 @@ if ! git -C "$SCRIPT_DIR" submodule update --init --recursive; then
     exit 1
 fi
 
-# Run all other .sh scripts
+# Run all other helper scripts
 failed=0
-for script in "$SCRIPT_DIR"/*.sh; do
+for script in "$HELPER_DIR"/*.sh; do
     case "$script" in
-        "$SCRIPT_DIR/$(basename "$0")"|"$INSTALL_SCRIPT")
+        "$INSTALL_SCRIPT")
             continue
             ;;
     esac

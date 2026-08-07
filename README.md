@@ -51,7 +51,7 @@ upstream commits.
 
 The setup automatically:
 
-- Adds the public key embedded in `setup-authorized-keys.sh` to
+- Adds the public key embedded in `scripts/setup-authorized-keys.sh` to
   `~/.ssh/authorized_keys` if it is not already present.
 - Grants the selected user unrestricted passwordless sudo through a validated
   file in `/etc/sudoers.d`.

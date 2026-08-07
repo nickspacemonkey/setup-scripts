@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 
 if [[ -z "${TARGET_USER:-}" ]] || [[ -z "${TARGET_HOME:-}" ]]; then
     echo "ERROR: TARGET_USER and TARGET_HOME must be set."
@@ -57,8 +58,8 @@ sudo install -d -m 0755 \
     "$STOW_SOURCE_ROOT"
 
 REPOS=(
-    "$SCRIPT_DIR/dotfiles"
-    "$SCRIPT_DIR/fishfiles"
+    "$REPO_ROOT/dotfiles"
+    "$REPO_ROOT/fishfiles"
 )
 
 for repo in "${REPOS[@]}"; do
