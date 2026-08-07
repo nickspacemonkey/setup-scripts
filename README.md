@@ -26,8 +26,9 @@ The script prompts for the user to configure and then performs these steps:
 2. Initializes the `dotfiles` and `fishfiles` Git submodules at their pinned
    revisions.
 3. Runs the remaining setup scripts.
-4. Stows the Bash and Fish configuration into the selected user's home
-   directory.
+4. Copies the Bash and Fish configuration into
+   `~/.local/share/setup-scripts` for the selected user.
+5. Stows that configuration into the selected user's home directory.
 
 Run the setup as a normal user. Individual commands request `sudo` access when
 needed.
