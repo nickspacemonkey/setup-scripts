@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-shopt -s nullglob
-
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 HELPER_DIR="$SCRIPT_DIR/scripts"
 INSTALL_SCRIPT="$HELPER_DIR/install_tools.sh"
+SETUP_SCRIPTS=(
+    "$HELPER_DIR/setup-authorized-keys.sh"
+    "$HELPER_DIR/setup-passwordless-sudo.sh"
+    "$HELPER_DIR/stow-dotfiles.sh"
+)
 
 read -r -p "Enter the username to configure: " TARGET_USER
 
@@ -56,21 +59,21 @@ else
     exit 1
 fi
 
-# Initialize bundled configuration repositories after Git is installed
+# Initialize bundled configuration repositories after installing required tools
 echo "Initializing Git submodules..."
 if ! git -C "$SCRIPT_DIR" submodule update --init --recursive; then
     echo "ERROR: Failed to initialize Git submodules."
     exit 1
 fi
 
-# Run all other helper scripts
+# Run the remaining helper scripts in order
 failed=0
-for script in "$HELPER_DIR"/*.sh; do
-    case "$script" in
-        "$INSTALL_SCRIPT")
-            continue
-            ;;
-    esac
+for script in "${SETUP_SCRIPTS[@]}"; do
+    if [[ ! -f "$script" ]]; then
+        echo "ERROR: $script not found."
+        failed=1
+        continue
+    fi
 
     echo "Running $script..."
     if ! bash "$script"; then

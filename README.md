@@ -9,6 +9,12 @@ sudo, and stowing Bash and Fish configuration from Git submodules.
 - `sudo` access
 - Git, when cloning the repository normally
 - One of the supported package managers: APT, DNF, YUM, Pacman, Zypper, or APK
+- Account tools: `getent`, `id`, and either `useradd` or `adduser`
+- Core utilities: `install`, `find`, and `readlink`
+- `visudo`, normally provided with sudo
+
+Minimal distributions and container images may require their account-management
+and core utility packages to be installed before running the setup.
 
 ## Usage
 
@@ -27,10 +33,10 @@ directory if necessary, and then performs these steps:
 2. Initializes the `dotfiles` and `fishfiles` Git submodules at their pinned
    revisions.
 3. Runs the remaining setup scripts.
-4. Copies the Bash and Fish configuration into
+4. Refreshes exact copies of the Bash and Fish configuration beneath
    `~/.local/share/setup-scripts` for the selected user.
 5. Moves conflicting files into a timestamped directory beneath
-   `~/.local/state/setup-scripts/backups`.
+   `~/.local/state/setup-scripts/backups`, private to the selected user.
 6. Stows the configuration into the selected user's home directory.
 
 Run the setup as a normal user. Individual commands request `sudo` access when

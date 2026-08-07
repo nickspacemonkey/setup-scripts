@@ -41,7 +41,7 @@ backup_conflicts() {
         fi
 
         backup_path="$BACKUP_ROOT/$source_name/$relative_path"
-        sudo install -d -m 0755 \
+        sudo install -d -m 0700 \
             -o "$TARGET_USER" \
             -g "$TARGET_GROUP" \
             "$(dirname "$backup_path")"
@@ -76,6 +76,18 @@ for repo in "${REPOS[@]}"; do
         -o "$TARGET_USER" \
         -g "$TARGET_GROUP" \
         "$user_source"
+
+    if [[ -n "$(sudo find "$user_source" -mindepth 1 -print -quit)" ]]; then
+        echo "Removing links from the previous $source_name mirror..."
+        (
+            cd "$TARGET_HOME"
+            sudo -H -u "$TARGET_USER" \
+                env HOME="$TARGET_HOME" \
+                stow --delete --dir="$user_source" --target="$TARGET_HOME" .
+        )
+    fi
+
+    sudo find "$user_source" -mindepth 1 -depth -delete
     sudo cp -a "$repo/." "$user_source/"
     sudo rm -f -- "$user_source/.git"
     sudo chown -R "$TARGET_USER:$TARGET_GROUP" "$user_source"
