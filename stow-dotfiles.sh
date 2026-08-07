@@ -16,6 +16,40 @@ fi
 
 TARGET_GROUP="$(id -gn "$TARGET_USER")"
 STOW_SOURCE_ROOT="$TARGET_HOME/.local/share/setup-scripts"
+BACKUP_ROOT="$TARGET_HOME/.local/state/setup-scripts/backups/$(date +%Y%m%d-%H%M%S)-$$"
+backup_created=0
+
+backup_conflicts() {
+    local source_root="$1"
+    local source_name="$2"
+    local source_path relative_path target_path backup_path
+    local source_real target_real
+
+    while IFS= read -r -d '' source_path; do
+        relative_path="${source_path#"$source_root"/}"
+        target_path="$TARGET_HOME/$relative_path"
+
+        if [[ ! -e "$target_path" ]] && [[ ! -L "$target_path" ]]; then
+            continue
+        fi
+
+        source_real="$(readlink -f -- "$source_path" || true)"
+        target_real="$(readlink -f -- "$target_path" || true)"
+        if [[ -L "$target_path" ]] && [[ -n "$source_real" ]] && [[ "$target_real" == "$source_real" ]]; then
+            continue
+        fi
+
+        backup_path="$BACKUP_ROOT/$source_name/$relative_path"
+        sudo install -d -m 0755 \
+            -o "$TARGET_USER" \
+            -g "$TARGET_GROUP" \
+            "$(dirname "$backup_path")"
+        sudo mv -- "$target_path" "$backup_path"
+        sudo chown -h "$TARGET_USER:$TARGET_GROUP" "$backup_path"
+        backup_created=1
+        echo "Backed up $target_path to $backup_path"
+    done < <(find "$source_root" \( -type f -o -type l \) -print0)
+}
 
 sudo install -d -m 0755 \
     -o "$TARGET_USER" \
@@ -45,6 +79,8 @@ for repo in "${REPOS[@]}"; do
     sudo rm -f -- "$user_source/.git"
     sudo chown -R "$TARGET_USER:$TARGET_GROUP" "$user_source"
 
+    backup_conflicts "$user_source" "$source_name"
+
     echo "Stowing $user_source into $TARGET_HOME..."
     (
         cd "$TARGET_HOME"
@@ -53,5 +89,9 @@ for repo in "${REPOS[@]}"; do
             stow --dir="$user_source" --target="$TARGET_HOME" .
     )
 done
+
+if (( backup_created != 0 )); then
+    echo "Existing files were backed up under $BACKUP_ROOT."
+fi
 
 echo "Done."

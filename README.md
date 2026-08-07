@@ -29,7 +29,9 @@ directory if necessary, and then performs these steps:
 3. Runs the remaining setup scripts.
 4. Copies the Bash and Fish configuration into
    `~/.local/share/setup-scripts` for the selected user.
-5. Stows that configuration into the selected user's home directory.
+5. Moves conflicting files into a timestamped directory beneath
+   `~/.local/state/setup-scripts/backups`.
+6. Stows the configuration into the selected user's home directory.
 
 Run the setup as a normal user. Individual commands request `sudo` access when
 needed.
