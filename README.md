@@ -20,7 +20,8 @@ cd setup-scripts
 bash setup.sh
 ```
 
-The script prompts for the user to configure and then performs these steps:
+The script prompts for the user to configure, creates that account and its home
+directory if necessary, and then performs these steps:
 
 1. Installs sudo, tmux, Fish, and GNU Stow.
 2. Initializes the `dotfiles` and `fishfiles` Git submodules at their pinned

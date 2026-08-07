@@ -8,8 +8,30 @@ INSTALL_SCRIPT="$SCRIPT_DIR/install_tools.sh"
 
 read -r -p "Enter the username to configure: " TARGET_USER
 
-if [[ -z "$TARGET_USER" ]] || ! id "$TARGET_USER" >/dev/null 2>&1; then
-    echo "ERROR: User '$TARGET_USER' does not exist."
+if [[ -z "$TARGET_USER" ]]; then
+    echo "ERROR: A username is required."
+    exit 1
+fi
+
+if [[ ! "$TARGET_USER" =~ ^[a-z_][a-z0-9_-]*[$]?$ ]]; then
+    echo "ERROR: '$TARGET_USER' is not a valid username."
+    exit 1
+fi
+
+if ! id "$TARGET_USER" >/dev/null 2>&1; then
+    echo "Creating user '$TARGET_USER'..."
+    if command -v useradd >/dev/null 2>&1; then
+        sudo useradd --create-home --shell /bin/bash -- "$TARGET_USER"
+    elif command -v adduser >/dev/null 2>&1; then
+        sudo adduser -D -s /bin/bash "$TARGET_USER"
+    else
+        echo "ERROR: Neither useradd nor adduser is available."
+        exit 1
+    fi
+fi
+
+if ! id "$TARGET_USER" >/dev/null 2>&1; then
+    echo "ERROR: Failed to create user '$TARGET_USER'."
     exit 1
 fi
 

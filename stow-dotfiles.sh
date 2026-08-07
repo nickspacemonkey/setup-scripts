@@ -46,9 +46,12 @@ for repo in "${REPOS[@]}"; do
     sudo chown -R "$TARGET_USER:$TARGET_GROUP" "$user_source"
 
     echo "Stowing $user_source into $TARGET_HOME..."
-    sudo -H -u "$TARGET_USER" \
-        env HOME="$TARGET_HOME" \
-        stow --dir="$user_source" --target="$TARGET_HOME" .
+    (
+        cd "$TARGET_HOME"
+        sudo -H -u "$TARGET_USER" \
+            env HOME="$TARGET_HOME" \
+            stow --dir="$user_source" --target="$TARGET_HOME" .
+    )
 done
 
 echo "Done."
