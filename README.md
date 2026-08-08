@@ -95,7 +95,7 @@ upstream commits.
 
 The setup automatically:
 
-- Adds the public key embedded in `scripts/setup-authorized-keys.sh` to
+- Validates and adds every public key in `config/ssh/authorized_keys.d` to
   `~/.ssh/authorized_keys` if it is not already present.
 - Configures SSH to deny root login and require public-key authentication,
   then validates and reloads the SSH server configuration.
