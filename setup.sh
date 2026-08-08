@@ -18,6 +18,38 @@ SETUP_SCRIPTS=(
     "$HELPER_DIR/setup-passwordless-sudo.sh"
     "$HELPER_DIR/stow-dotfiles.sh"
 )
+REQUESTED_USER=""
+
+if (( $# > 0 )); then
+    case "$1" in
+        --user)
+            if (( $# < 2 )); then
+                echo "ERROR: --user requires a username."
+                exit 1
+            fi
+            REQUESTED_USER="$2"
+            shift 2
+            ;;
+        --user=*)
+            REQUESTED_USER="${1#--user=}"
+            shift
+            ;;
+        --*)
+            echo "ERROR: Unknown option: $1"
+            exit 1
+            ;;
+        *)
+            # Retain compatibility with the original positional argument.
+            REQUESTED_USER="$1"
+            shift
+            ;;
+    esac
+fi
+
+if (( $# > 0 )); then
+    echo "ERROR: Unexpected argument: $1"
+    exit 1
+fi
 
 install_git() {
     command -v git >/dev/null 2>&1 && return
@@ -46,7 +78,10 @@ bootstrap_repository() {
     local checkout="${SETUP_SCRIPTS_CHECKOUT:-$DEFAULT_CHECKOUT}"
     local bootstrap_user checkout_origin
 
-    read -r -p "Enter the username to configure: " bootstrap_user
+    bootstrap_user="$REQUESTED_USER"
+    if [[ -z "$bootstrap_user" ]]; then
+        read -r -p "Enter the username to configure: " bootstrap_user
+    fi
 
     if [[ -z "$bootstrap_user" ]]; then
         echo "ERROR: A username is required."
@@ -88,7 +123,7 @@ bootstrap_repository() {
         fi
     fi
 
-    exec bash "$checkout/setup.sh" "$bootstrap_user" "$@"
+    exec bash "$checkout/setup.sh" --user "$bootstrap_user"
 }
 
 # A downloaded copy of setup.sh can bootstrap the complete repository.
@@ -96,10 +131,8 @@ if [[ ! -f "$INSTALL_SCRIPT" ]]; then
     bootstrap_repository "$@"
 fi
 
-if (( $# > 0 )); then
-    TARGET_USER="$1"
-    shift
-else
+TARGET_USER="$REQUESTED_USER"
+if [[ -z "$TARGET_USER" ]]; then
     read -r -p "Enter the username to configure: " TARGET_USER
 fi
 

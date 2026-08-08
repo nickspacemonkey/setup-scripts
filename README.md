@@ -18,6 +18,12 @@ and core utility packages to be installed before running the setup.
 
 ## Usage
 
+One-line installation for user `nick`:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | sudo bash -s -- --user nick
+```
+
 Run a downloaded copy of `setup.sh` by itself to install Git, clone the full
 repository into `/opt/setup-scripts`, and continue from that checkout:
 
@@ -31,6 +37,12 @@ Or download it with `wget`:
 ```bash
 wget https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh
 sudo bash setup.sh
+```
+
+To skip the username prompt, pass the account with `--user`:
+
+```bash
+sudo bash setup.sh --user nick
 ```
 
 Set `SETUP_SCRIPTS_CHECKOUT` to use a different checkout location.
