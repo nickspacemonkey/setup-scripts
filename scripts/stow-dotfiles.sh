@@ -96,17 +96,20 @@ sudo install -d -m 0755 \
     "$STOW_SOURCE_ROOT"
 
 REPOS=(
-    "$REPO_ROOT/dotfiles"
-    "$REPO_ROOT/fishfiles"
+    "$REPO_ROOT/config/bash"
+    "$REPO_ROOT/config/fish"
 )
+SOURCE_NAMES=("dotfiles" "fishfiles")
 
-for repo in "${REPOS[@]}"; do
+for index in "${!REPOS[@]}"; do
+    repo="${REPOS[$index]}"
     if [[ ! -d "$repo" ]]; then
         echo "Skipping '$repo' (directory not found)"
         continue
     fi
 
-    source_name="$(basename "$repo")"
+    # Keep the existing mirror names so upgrades can safely unstow old links.
+    source_name="${SOURCE_NAMES[$index]}"
     user_source="$STOW_SOURCE_ROOT/$source_name"
 
     echo "Copying $repo into $user_source..."

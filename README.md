@@ -34,8 +34,8 @@ directory if necessary, and then performs these steps:
    `config/apt/50unattended-upgrades` configuration.
 2. Adds the configured user's SSH public key, then disables SSH root login and
    all non-public-key authentication.
-3. Initializes the `dotfiles` and `fishfiles` Git submodules at their pinned
-   revisions.
+3. Initializes the Bash and Fish Git submodules under `config/` at their
+   pinned revisions.
 4. Runs the remaining setup scripts.
 5. Refreshes exact copies of the Bash and Fish configuration beneath
    `~/.local/share/setup-scripts` for the selected user.
@@ -53,8 +53,8 @@ needed.
 
 Shell configuration is maintained in separate repositories:
 
-- `dotfiles`: <https://github.com/nickspacemonkey/dotfiles>
-- `fishfiles`: <https://github.com/nickspacemonkey/fishfiles>
+- `config/bash`: <https://github.com/nickspacemonkey/dotfiles>
+- `config/fish`: <https://github.com/nickspacemonkey/fishfiles>
 
 `setup.sh` runs `git submodule update --init --recursive`. This checks out the
 revisions pinned by this repository; it does not automatically select newer

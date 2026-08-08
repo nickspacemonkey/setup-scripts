@@ -1,6 +1,6 @@
 [submodule "dotfiles"]
-	path = dotfiles
+	path = config/bash
 	url = https://github.com/nickspacemonkey/dotfiles
 [submodule "fishfiles"]
-	path = fishfiles
+	path = config/fish
 	url = https://github.com/nickspacemonkey/fishfiles
