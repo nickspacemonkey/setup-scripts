@@ -19,6 +19,7 @@ REPOSITORY_URL="https://github.com/nickspacemonkey/setup-scripts.git"
 DEFAULT_CHECKOUT="/opt/setup-scripts"
 DEFAULT_UID_MIN=1000
 SETUP_SCRIPTS=(
+    "$HELPER_DIR/setup-timezone.sh"
     "$HELPER_DIR/setup-authorized-keys.sh"
     "$HELPER_DIR/harden-ssh.sh"
     "$HELPER_DIR/setup-passwordless-sudo.sh"

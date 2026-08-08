@@ -104,6 +104,7 @@ install_packages() {
         apt-get install -y \
             sudo \
             git \
+            tzdata \
             tmux \
             fish \
             stow \
@@ -130,6 +131,7 @@ install_packages() {
         dnf install -y \
             sudo \
             git \
+            tzdata \
             tmux \
             openssh-server \
             dnf-automatic \
@@ -146,6 +148,7 @@ install_packages() {
         yum install -y \
             sudo \
             git \
+            tzdata \
             tmux \
             fish \
             stow \
@@ -159,6 +162,7 @@ install_packages() {
         pacman -Syu --noconfirm \
             sudo \
             git \
+            tzdata \
             tmux \
             fish \
             stow \
@@ -168,6 +172,7 @@ install_packages() {
         zypper --non-interactive install \
             sudo \
             git \
+            timezone \
             tmux \
             fish \
             stow \
@@ -177,6 +182,7 @@ install_packages() {
         apk add \
             sudo \
             git \
+            tzdata \
             tmux \
             fish \
             stow \
@@ -188,7 +194,7 @@ install_packages() {
     fi
 }
 
-echo "Installing sudo, Git, tmux, fish, stow, and OpenSSH server..."
+echo "Installing sudo, Git, timezone data, tmux, fish, stow, and OpenSSH server..."
 install_packages
 
 echo

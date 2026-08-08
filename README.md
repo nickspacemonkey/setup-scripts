@@ -57,22 +57,24 @@ sudo bash setup.sh
 The script prompts for the user to configure, creates that account and its home
 directory if necessary, and then performs these steps:
 
-1. Installs sudo, Git, tmux, Fish, GNU Stow, and the OpenSSH server. On Debian
-   and Ubuntu, it also installs and enables unattended-upgrades using a bundled
-   distribution-specific APT configuration. On DNF-based systems, it enables
-   DNF4 or DNF5 automatic updates and a daily 06:00 reboot-if-required timer.
-   If a DNF distribution does not provide Fish or Stow in its enabled native
-   repositories, setup attempts to enable CRB/PowerTools and EPEL, then retries.
+1. Installs sudo, Git, timezone data, tmux, Fish, GNU Stow, and the OpenSSH
+   server. On Debian and Ubuntu, it also installs and enables
+   unattended-upgrades using a bundled distribution-specific APT
+   configuration. On DNF-based systems, it enables DNF4 or DNF5 automatic
+   updates and a daily 06:00 reboot-if-required timer. If a DNF distribution
+   does not provide Fish or Stow in its enabled native repositories, setup
+   attempts to enable CRB/PowerTools and EPEL, then retries.
 2. Initializes the Bash and Fish Git submodules under `config/` at their
    pinned revisions.
-3. Adds the configured user's SSH public key, then disables SSH root login and
+3. Sets the system timezone to `Europe/London`.
+4. Adds the configured user's SSH public key, then disables SSH root login and
    all non-public-key authentication.
-4. Runs the remaining setup scripts, stopping immediately if one fails.
-5. Refreshes exact copies of the Bash and Fish configuration beneath
+5. Runs the remaining setup scripts, stopping immediately if one fails.
+6. Refreshes exact copies of the Bash and Fish configuration beneath
    `~/.local/share/setup-scripts` for the selected user.
-6. Moves conflicting files into a timestamped directory beneath
+7. Moves conflicting files into a timestamped directory beneath
    `~/.local/state/setup-scripts/backups`, private to the selected user.
-7. Stows the configuration into the selected user's home directory.
+8. Stows the configuration into the selected user's home directory.
 
 Conflict handling includes files, leaf symlinks, and foreign symlinks in
 intermediate directory components.
