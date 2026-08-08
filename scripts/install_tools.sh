@@ -199,6 +199,7 @@ install_packages() {
             tzdata \
             tmux \
             nala \
+            tar \
             wget \
             ncdu \
             fish \
@@ -240,6 +241,7 @@ install_packages() {
             tmux \
             curl \
             wget \
+            tar \
             openssh-server \
             dnf-automatic \
             dnf-plugins-core
@@ -265,6 +267,7 @@ install_packages() {
             curl \
             wget \
             ncdu \
+            tar \
             fish \
             stow \
             bat \
@@ -285,6 +288,7 @@ install_packages() {
             curl \
             wget \
             ncdu \
+            tar \
             fish \
             stow \
             bat \
@@ -301,6 +305,7 @@ install_packages() {
             curl \
             wget \
             ncdu \
+            tar \
             fish \
             stow \
             bat \
@@ -317,6 +322,7 @@ install_packages() {
             curl \
             wget \
             ncdu \
+            tar \
             fish \
             stow \
             bat \
@@ -330,7 +336,7 @@ install_packages() {
     fi
 }
 
-echo "Installing sudo, Git, timezone data, tmux, curl, wget, ncdu, fish, stow, Helix, bat, eza, and OpenSSH server (plus nala on APT systems)..."
+echo "Installing sudo, Git, timezone data, tmux, curl, wget, tar, ncdu, fish, stow, Helix, bat, eza, and OpenSSH server (plus nala on APT systems)..."
 install_packages
 
 echo
@@ -342,6 +348,7 @@ command -v tmux >/dev/null && tmux -V
 command -v nala >/dev/null && nala --version | sed -n '1p'
 command -v curl >/dev/null && curl --version | sed -n '1p'
 command -v wget >/dev/null && wget --version | sed -n '1p'
+command -v tar >/dev/null && tar --version | sed -n '1p'
 command -v ncdu >/dev/null && ncdu --version | sed -n '1p'
 command -v fish >/dev/null && fish --version
 command -v stow >/dev/null && stow --version | head -n1

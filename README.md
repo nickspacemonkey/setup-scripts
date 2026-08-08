@@ -66,8 +66,8 @@ sudo bash setup.sh
 The script prompts for the user to configure, creates that account and its home
 directory if necessary, and then performs these steps:
 
-1. Installs sudo, Git, timezone data, tmux, curl, wget, ncdu, Fish, GNU Stow,
-   Helix, bat, eza, and the OpenSSH server. APT systems also receive nala.
+1. Installs sudo, Git, timezone data, tmux, curl, wget, tar, ncdu, Fish, GNU
+   Stow, Helix, bat, eza, and the OpenSSH server. APT systems also receive nala.
    Debian and Ubuntu use the `.deb` from the latest Helix release, while other
    supported package managers use their native Helix package. Debian and
    Ubuntu use eza's signed APT repository. On Debian and Ubuntu, setup also
