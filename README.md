@@ -83,7 +83,9 @@ directory if necessary, and then performs these steps:
 3. When the `docker` argument is supplied, installs and starts Docker Engine
    with Buildx and Compose using the host distribution's package format.
    Rocky Linux and AlmaLinux follow Docker's RHEL repository procedure,
-   including removal of packages that conflict with Docker Engine.
+   including removal of packages that conflict with Docker Engine. Setup also
+   copies the bundled Docker Compose helper scripts into the selected user's
+   `~/docker` directory.
 4. Sets the system timezone to `Europe/London`.
 5. Adds the configured user's SSH public key, then disables SSH root login and
    all non-public-key authentication.
@@ -102,9 +104,10 @@ changes if it does not have root privileges.
 
 ## Submodules
 
-Shell configuration is maintained in separate repositories:
+Bundled configuration and helper scripts are maintained in separate repositories:
 
 - `config/bash`: <https://github.com/nickspacemonkey/dotfiles>
+- `config/docker`: <https://github.com/nickspacemonkey/docker-compose-scripts>
 - `config/fish`: <https://github.com/nickspacemonkey/fishfiles>
 
 `setup.sh` runs `git submodule update --init --recursive`. This checks out the

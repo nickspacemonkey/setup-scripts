@@ -70,7 +70,11 @@ if (( $# > 0 )); then
 fi
 
 if (( INSTALL_DOCKER != 0 )); then
-    SETUP_SCRIPTS=("$HELPER_DIR/install-docker.sh" "${SETUP_SCRIPTS[@]}")
+    SETUP_SCRIPTS=(
+        "$HELPER_DIR/install-docker.sh"
+        "$HELPER_DIR/setup-docker-files.sh"
+        "${SETUP_SCRIPTS[@]}"
+    )
 fi
 
 install_git() {

@@ -4,3 +4,6 @@
 [submodule "fishfiles"]
 	path = config/fish
 	url = https://github.com/nickspacemonkey/fishfiles
+[submodule "config/docker"]
+	path = config/docker
+	url = https://github.com/nickspacemonkey/docker-compose-scripts
