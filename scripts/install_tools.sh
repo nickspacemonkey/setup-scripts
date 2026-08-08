@@ -19,6 +19,35 @@ get_distro_id() {
     (. /etc/os-release && printf '%s' "${ID:-}")
 }
 
+get_distro_version_id() {
+    [[ -r /etc/os-release ]] || return
+
+    (. /etc/os-release && printf '%s' "${VERSION_ID:-}")
+}
+
+enable_dnf_extra_repositories() {
+    local major_version
+
+    echo "Fish or Stow was not found in the enabled repositories; trying EPEL..."
+    if ! dnf install -y dnf-plugins-core epel-release; then
+        echo "ERROR: This DNF distribution does not provide epel-release automatically."
+        return 1
+    fi
+
+    if command -v crb >/dev/null 2>&1; then
+        crb enable
+        return
+    fi
+
+    major_version="$(get_distro_version_id)"
+    major_version="${major_version%%.*}"
+    if [[ "$major_version" == "8" ]]; then
+        dnf config-manager --set-enabled powertools
+    else
+        dnf config-manager --set-enabled crb
+    fi
+}
+
 configure_dnf_automatic() {
     local automatic_timer=""
     local unit
@@ -102,11 +131,14 @@ install_packages() {
             sudo \
             git \
             tmux \
-            fish \
-            stow \
             openssh-server \
             dnf-automatic \
             dnf-plugins-core
+
+        if ! dnf install -y fish stow; then
+            enable_dnf_extra_repositories
+            dnf install -y fish stow
+        fi
 
         configure_dnf_automatic
 

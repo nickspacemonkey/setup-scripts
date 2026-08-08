@@ -61,6 +61,8 @@ directory if necessary, and then performs these steps:
    and Ubuntu, it also installs and enables unattended-upgrades using a bundled
    distribution-specific APT configuration. On DNF-based systems, it enables
    DNF4 or DNF5 automatic updates and a daily 06:00 reboot-if-required timer.
+   If a DNF distribution does not provide Fish or Stow in its enabled native
+   repositories, setup attempts to enable CRB/PowerTools and EPEL, then retries.
 2. Initializes the Bash and Fish Git submodules under `config/` at their
    pinned revisions.
 3. Adds the configured user's SSH public key, then disables SSH root login and
