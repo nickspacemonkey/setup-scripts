@@ -14,6 +14,10 @@ TEMP_CONFIG=""
 BACKUP_CONFIG=""
 EFFECTIVE_CONFIG=""
 
+ensure_sshd_runtime_dir() {
+    sudo install -d -m 0755 -o root -g root /run/sshd
+}
+
 cleanup() {
     if [[ -n "$TEMP_CONFIG" ]]; then
         rm -f -- "$TEMP_CONFIG"
@@ -52,7 +56,7 @@ PermitEmptyPasswords no
 EOF
 
 sudo install -d -m 0755 "$SSHD_CONFIG_DIR"
-sudo install -d -m 0755 -o root -g root /run/sshd
+ensure_sshd_runtime_dir
 
 if sudo test -f "$HARDENING_CONFIG"; then
     BACKUP_CONFIG="$(mktemp)"
@@ -93,12 +97,16 @@ for setting in "${REQUIRED_SETTINGS[@]}"; do
 done
 
 activate_ssh_service() {
+    ensure_sshd_runtime_dir
+
     if command -v systemctl >/dev/null 2>&1; then
-        if sudo systemctl enable --now sshd 2>/dev/null && sudo systemctl reload sshd; then
-            return
-        elif sudo systemctl enable --now ssh 2>/dev/null && sudo systemctl reload ssh; then
-            return
-        fi
+        local unit
+        for unit in ssh.service sshd.service; do
+            if sudo systemctl cat "$unit" >/dev/null 2>&1; then
+                sudo systemctl enable "$unit" && sudo systemctl restart "$unit"
+                return
+            fi
+        done
     elif command -v rc-service >/dev/null 2>&1; then
         sudo rc-update add sshd default && sudo rc-service sshd restart
         return
@@ -115,6 +123,7 @@ activate_ssh_service() {
 
 if ! activate_ssh_service; then
     restore_previous_config
+    ensure_sshd_runtime_dir
     if sudo sshd -t; then
         activate_ssh_service || true
     fi

@@ -21,7 +21,7 @@ and core utility packages to be installed before running the setup.
 One-line installation for user `nick`:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | sudo bash -s -- --user nick
+wget -qO- https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- --user nick
 ```
 
 Run a downloaded copy of `setup.sh` by itself to install Git, clone the full
