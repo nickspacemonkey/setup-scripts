@@ -103,10 +103,10 @@ install_docker_dnf() {
 
     # Replace an earlier CentOS mapping when rerunning setup on Rocky or AlmaLinux.
     rm -f -- /etc/yum.repos.d/docker-ce.repo
-    if dnf config-manager addrepo --help >/dev/null 2>&1; then
-        dnf config-manager addrepo --from-repofile "$repository_url"
-    else
+    if dnf config-manager --help 2>&1 | grep -q -- '--add-repo'; then
         dnf config-manager --add-repo "$repository_url"
+    else
+        dnf config-manager addrepo --from-repofile "$repository_url"
     fi
 
     dnf install -y "${DOCKER_PACKAGES[@]}"
