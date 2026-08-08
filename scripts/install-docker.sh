@@ -21,6 +21,18 @@ DOCKER_PACKAGES=(
     docker-buildx-plugin
     docker-compose-plugin
 )
+RHEL_CONFLICTING_PACKAGES=(
+    docker
+    docker-client
+    docker-client-latest
+    docker-common
+    docker-latest
+    docker-latest-logrotate
+    docker-logrotate
+    docker-engine
+    podman
+    runc
+)
 
 install_docker_apt() {
     local docker_distribution="$ID"
@@ -61,14 +73,20 @@ EOF
 install_docker_dnf() {
     local repository_distribution
     local repository_url
+    local remove_conflicting_packages=0
 
     case "$ID" in
-        fedora|rhel|centos)
+        fedora|centos)
             repository_distribution="$ID"
             ;;
+        rhel)
+            repository_distribution="rhel"
+            remove_conflicting_packages=1
+            ;;
         rocky|almalinux)
-            repository_distribution="centos"
-            echo "NOTICE: Docker does not verify $ID; using its CentOS-compatible repository."
+            repository_distribution="rhel"
+            remove_conflicting_packages=1
+            echo "NOTICE: Docker does not explicitly support $ID; following its RHEL installation procedure."
             ;;
         *)
             echo "ERROR: Docker does not provide a repository mapping for DNF distribution '$ID'."
@@ -76,15 +94,19 @@ install_docker_dnf() {
             ;;
     esac
 
+    if (( remove_conflicting_packages != 0 )); then
+        dnf remove -y "${RHEL_CONFLICTING_PACKAGES[@]}"
+    fi
+
     dnf install -y dnf-plugins-core
     repository_url="https://download.docker.com/linux/$repository_distribution/docker-ce.repo"
 
-    if [[ ! -f /etc/yum.repos.d/docker-ce.repo ]]; then
-        if dnf config-manager addrepo --help >/dev/null 2>&1; then
-            dnf config-manager addrepo --from-repofile "$repository_url"
-        else
-            dnf config-manager --add-repo "$repository_url"
-        fi
+    # Replace an earlier CentOS mapping when rerunning setup on Rocky or AlmaLinux.
+    rm -f -- /etc/yum.repos.d/docker-ce.repo
+    if dnf config-manager addrepo --help >/dev/null 2>&1; then
+        dnf config-manager addrepo --from-repofile "$repository_url"
+    else
+        dnf config-manager --add-repo "$repository_url"
     fi
 
     dnf install -y "${DOCKER_PACKAGES[@]}"
