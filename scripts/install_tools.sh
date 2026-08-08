@@ -7,18 +7,18 @@ if (( EUID != 0 )); then
 fi
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-UNATTENDED_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/50unattended-upgrades"
+APT_CONFIG_DIR="$SCRIPT_DIR/../config/apt"
 AUTO_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/20auto-upgrades"
 
-is_debian() {
-    [[ -r /etc/os-release ]] || return 1
+get_distro_id() {
+    [[ -r /etc/os-release ]] || return
 
-    local ID
-    ID="$(. /etc/os-release && printf '%s' "${ID:-}")"
-    [[ "$ID" == "debian" ]]
+    (. /etc/os-release && printf '%s' "${ID:-}")
 }
 
 install_packages() {
+    local distro_id unattended_upgrades_config
+
     if command -v apt-get >/dev/null 2>&1; then
         apt-get update
         apt-get install -y \
@@ -29,8 +29,10 @@ install_packages() {
             stow \
             openssh-server
 
-        if is_debian; then
-            if [[ ! -f "$UNATTENDED_UPGRADES_CONFIG" ]] || [[ ! -f "$AUTO_UPGRADES_CONFIG" ]]; then
+        distro_id="$(get_distro_id)"
+        if [[ "$distro_id" == "debian" ]] || [[ "$distro_id" == "ubuntu" ]]; then
+            unattended_upgrades_config="$APT_CONFIG_DIR/$distro_id/50unattended-upgrades"
+            if [[ ! -f "$unattended_upgrades_config" ]] || [[ ! -f "$AUTO_UPGRADES_CONFIG" ]]; then
                 echo "ERROR: Bundled unattended-upgrades configuration is incomplete."
                 exit 1
             fi
@@ -40,7 +42,7 @@ install_packages() {
                 "$AUTO_UPGRADES_CONFIG" \
                 /etc/apt/apt.conf.d/20auto-upgrades
             install -m 0644 \
-                "$UNATTENDED_UPGRADES_CONFIG" \
+                "$unattended_upgrades_config" \
                 /etc/apt/apt.conf.d/50unattended-upgrades
         fi
 
