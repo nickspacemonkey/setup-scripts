@@ -18,19 +18,29 @@ and core utility packages to be installed before running the setup.
 
 ## Usage
 
-Clone the repository and run the main setup script:
+Run a downloaded copy of `setup.sh` by itself to install Git, clone the full
+repository into `~/.local/src/setup-scripts`, and continue from that checkout:
+
+```bash
+curl -O https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh
+sudo bash setup.sh
+```
+
+Set `SETUP_SCRIPTS_CHECKOUT` to use a different checkout location.
+
+Alternatively, clone the repository and run the main setup script:
 
 ```bash
 git clone https://github.com/nickspacemonkey/setup-scripts
 cd setup-scripts
-bash setup.sh
+sudo bash setup.sh
 ```
 
 The script prompts for the user to configure, creates that account and its home
 directory if necessary, and then performs these steps:
 
-1. Installs sudo, tmux, Fish, GNU Stow, and the OpenSSH server. On Debian, it
-   also installs unattended-upgrades and applies the bundled
+1. Installs sudo, Git, tmux, Fish, GNU Stow, and the OpenSSH server. On Debian,
+   it also installs unattended-upgrades and applies the bundled
    `config/apt/50unattended-upgrades` configuration.
 2. Adds the configured user's SSH public key, then disables SSH root login and
    all non-public-key authentication.
@@ -46,8 +56,8 @@ directory if necessary, and then performs these steps:
 Conflict handling includes files, leaf symlinks, and foreign symlinks in
 intermediate directory components.
 
-Run the setup as a normal user. Individual commands request `sudo` access when
-needed.
+Run the setup as root, normally through `sudo`. The script exits before making
+changes if it does not have root privileges.
 
 ## Submodules
 

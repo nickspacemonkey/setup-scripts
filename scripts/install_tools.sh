@@ -17,6 +17,7 @@ install_packages() {
         sudo apt-get update
         sudo apt-get install -y \
             sudo \
+            git \
             tmux \
             fish \
             stow \
@@ -37,6 +38,7 @@ install_packages() {
     elif command -v dnf >/dev/null 2>&1; then
         sudo dnf install -y \
             sudo \
+            git \
             tmux \
             fish \
             stow \
@@ -45,6 +47,7 @@ install_packages() {
     elif command -v yum >/dev/null 2>&1; then
         sudo yum install -y \
             sudo \
+            git \
             tmux \
             fish \
             stow \
@@ -53,6 +56,7 @@ install_packages() {
     elif command -v pacman >/dev/null 2>&1; then
         sudo pacman -Syu --noconfirm \
             sudo \
+            git \
             tmux \
             fish \
             stow \
@@ -61,6 +65,7 @@ install_packages() {
     elif command -v zypper >/dev/null 2>&1; then
         sudo zypper --non-interactive install \
             sudo \
+            git \
             tmux \
             fish \
             stow \
@@ -69,6 +74,7 @@ install_packages() {
     elif command -v apk >/dev/null 2>&1; then
         sudo apk add \
             sudo \
+            git \
             tmux \
             fish \
             stow \
@@ -80,13 +86,14 @@ install_packages() {
     fi
 }
 
-echo "Installing sudo, tmux, fish, stow, and OpenSSH server..."
+echo "Installing sudo, Git, tmux, fish, stow, and OpenSSH server..."
 install_packages
 
 echo
 echo "Installed versions:"
 echo "-------------------"
 command -v sudo >/dev/null && sudo --version | sed -n '1p'
+command -v git >/dev/null && git --version
 command -v tmux >/dev/null && tmux -V
 command -v fish >/dev/null && fish --version
 command -v stow >/dev/null && stow --version | head -n1
