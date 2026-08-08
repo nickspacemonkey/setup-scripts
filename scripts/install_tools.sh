@@ -25,10 +25,35 @@ get_distro_version_id() {
     (. /etc/os-release && printf '%s' "${VERSION_ID:-}")
 }
 
+install_helix_debian() {
+    local architecture asset_url download_dir package_file
+
+    architecture="$(dpkg --print-architecture)"
+    asset_url="$(
+        curl -fsSL https://api.github.com/repos/helix-editor/helix/releases/latest |
+            sed -n "s#.*\"browser_download_url\": \"\([^\"]*_${architecture}\\.deb\)\".*#\1#p" |
+            head -n1
+    )"
+
+    if [[ -z "$asset_url" ]]; then
+        echo "ERROR: No Helix Debian package is available for architecture '$architecture'."
+        return 1
+    fi
+
+    download_dir="$(mktemp -d)"
+    package_file="$download_dir/helix.deb"
+    if ! curl -fsSL "$asset_url" -o "$package_file" ||
+       ! apt-get install -y "$package_file"; then
+        rm -rf -- "$download_dir"
+        return 1
+    fi
+    rm -rf -- "$download_dir"
+}
+
 enable_dnf_extra_repositories() {
     local major_version
 
-    echo "Fish or Stow was not found in the enabled repositories; trying EPEL..."
+    echo "Fish, Stow, or Helix was not found in the enabled repositories; trying EPEL..."
     if ! dnf install -y dnf-plugins-core epel-release; then
         echo "ERROR: This DNF distribution does not provide epel-release automatically."
         return 1
@@ -100,7 +125,16 @@ install_packages() {
     local distro_id unattended_upgrades_config
 
     if command -v apt-get >/dev/null 2>&1; then
+        distro_id="$(get_distro_id)"
         apt-get update
+        apt-get install -y ca-certificates curl
+
+        if [[ "$distro_id" == "ubuntu" ]]; then
+            apt-get install -y software-properties-common
+            add-apt-repository -y ppa:maveonair/helix-editor
+            apt-get update
+        fi
+
         apt-get install -y \
             sudo \
             git \
@@ -110,7 +144,15 @@ install_packages() {
             stow \
             openssh-server
 
-        distro_id="$(get_distro_id)"
+        if [[ "$distro_id" == "ubuntu" ]]; then
+            apt-get install -y helix
+        elif [[ "$distro_id" == "debian" ]]; then
+            install_helix_debian
+        else
+            echo "ERROR: Helix installation is not configured for APT distribution '$distro_id'."
+            exit 1
+        fi
+
         if [[ "$distro_id" == "debian" ]] || [[ "$distro_id" == "ubuntu" ]]; then
             unattended_upgrades_config="$APT_CONFIG_DIR/$distro_id/50unattended-upgrades"
             if [[ ! -f "$unattended_upgrades_config" ]] || [[ ! -f "$AUTO_UPGRADES_CONFIG" ]]; then
@@ -137,9 +179,9 @@ install_packages() {
             dnf-automatic \
             dnf-plugins-core
 
-        if ! dnf install -y fish stow; then
+        if ! dnf install -y fish stow helix; then
             enable_dnf_extra_repositories
-            dnf install -y fish stow
+            dnf install -y fish stow helix
         fi
 
         configure_dnf_automatic
@@ -154,7 +196,8 @@ install_packages() {
             stow \
             openssh-server \
             dnf-automatic \
-            dnf-plugins-core
+            dnf-plugins-core \
+            helix
 
         configure_dnf_automatic
 
@@ -166,7 +209,8 @@ install_packages() {
             tmux \
             fish \
             stow \
-            openssh
+            openssh \
+            helix
 
     elif command -v zypper >/dev/null 2>&1; then
         zypper --non-interactive install \
@@ -176,7 +220,8 @@ install_packages() {
             tmux \
             fish \
             stow \
-            openssh-server
+            openssh-server \
+            helix
 
     elif command -v apk >/dev/null 2>&1; then
         apk add \
@@ -186,7 +231,8 @@ install_packages() {
             tmux \
             fish \
             stow \
-            openssh-server
+            openssh-server \
+            helix
 
     else
         echo "ERROR: Unsupported package manager."
@@ -194,7 +240,7 @@ install_packages() {
     fi
 }
 
-echo "Installing sudo, Git, timezone data, tmux, fish, stow, and OpenSSH server..."
+echo "Installing sudo, Git, timezone data, tmux, fish, stow, Helix, and OpenSSH server..."
 install_packages
 
 echo
@@ -205,6 +251,11 @@ command -v git >/dev/null && git --version
 command -v tmux >/dev/null && tmux -V
 command -v fish >/dev/null && fish --version
 command -v stow >/dev/null && stow --version | head -n1
+if command -v hx >/dev/null 2>&1; then
+    hx --version | sed -n '1p'
+elif command -v helix >/dev/null 2>&1; then
+    helix --version | sed -n '1p'
+fi
 command -v sshd >/dev/null && sshd -V 2>&1 | sed -n '1p'
 
 echo
