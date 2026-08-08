@@ -11,6 +11,7 @@ HELPER_DIR="$SCRIPT_DIR/scripts"
 INSTALL_SCRIPT="$HELPER_DIR/install_tools.sh"
 REPOSITORY_URL="https://github.com/nickspacemonkey/setup-scripts.git"
 DEFAULT_CHECKOUT="/opt/setup-scripts"
+DEFAULT_UID_MIN=1000
 SETUP_SCRIPTS=(
     "$HELPER_DIR/setup-authorized-keys.sh"
     "$HELPER_DIR/harden-ssh.sh"
@@ -43,7 +44,7 @@ install_git() {
 
 bootstrap_repository() {
     local checkout="${SETUP_SCRIPTS_CHECKOUT:-$DEFAULT_CHECKOUT}"
-    local bootstrap_user
+    local bootstrap_user checkout_origin
 
     read -r -p "Enter the username to configure: " bootstrap_user
 
@@ -67,7 +68,17 @@ bootstrap_repository() {
             echo "ERROR: Bootstrap destination already exists and is not a setup-scripts checkout: $checkout"
             exit 1
         fi
-        echo "Using existing setup-scripts checkout at $checkout..."
+        checkout_origin="$(git -C "$checkout" remote get-url origin 2>/dev/null || true)"
+        if [[ "$checkout_origin" != "$REPOSITORY_URL" ]]; then
+            echo "ERROR: Existing checkout has an unexpected origin: ${checkout_origin:-none}"
+            exit 1
+        fi
+
+        echo "Updating existing setup-scripts checkout at $checkout..."
+        if ! git -C "$checkout" pull --ff-only origin main; then
+            echo "ERROR: Existing checkout could not be safely fast-forwarded."
+            exit 1
+        fi
     else
         echo "Cloning setup-scripts into $checkout..."
         mkdir -p -- "$(dirname -- "$checkout")"
@@ -119,6 +130,14 @@ if ! id "$TARGET_USER" >/dev/null 2>&1; then
     exit 1
 fi
 
+UID_MIN="$(awk '$1 == "UID_MIN" { print $2; exit }' /etc/login.defs 2>/dev/null || true)"
+UID_MIN="${UID_MIN:-$DEFAULT_UID_MIN}"
+TARGET_UID="$(id -u "$TARGET_USER")"
+if (( TARGET_UID == 0 || TARGET_UID < UID_MIN )); then
+    echo "ERROR: '$TARGET_USER' is a root or system account (UID $TARGET_UID); a regular user is required."
+    exit 1
+fi
+
 TARGET_HOME="$(getent passwd "$TARGET_USER" | cut -d: -f6)"
 if [[ -z "$TARGET_HOME" ]] || [[ ! -d "$TARGET_HOME" ]]; then
     echo "ERROR: Home directory for '$TARGET_USER' was not found."
@@ -147,24 +166,17 @@ if ! git -C "$SCRIPT_DIR" submodule update --init --recursive; then
 fi
 
 # Run the remaining helper scripts in order
-failed=0
 for script in "${SETUP_SCRIPTS[@]}"; do
     if [[ ! -f "$script" ]]; then
         echo "ERROR: $script not found."
-        failed=1
-        continue
+        exit 1
     fi
 
     echo "Running $script..."
     if ! bash "$script"; then
         echo "ERROR: $script failed."
-        failed=1
+        exit 1
     fi
 done
-
-if (( failed != 0 )); then
-    echo "ERROR: One or more setup scripts failed."
-    exit 1
-fi
 
 echo "All scripts processed."

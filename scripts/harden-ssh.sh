@@ -69,7 +69,8 @@ restore_previous_config() {
     fi
 }
 
-if ! sudo sshd -t || ! EFFECTIVE_CONFIG="$(sudo sshd -T)"; then
+if ! sudo sshd -t ||
+   ! EFFECTIVE_CONFIG="$(sudo sshd -T -C "user=$TARGET_USER,host=localhost,addr=127.0.0.1")"; then
     restore_previous_config
     echo "ERROR: SSH configuration validation failed; the previous config was restored."
     exit 1
@@ -91,24 +92,33 @@ for setting in "${REQUIRED_SETTINGS[@]}"; do
     fi
 done
 
-if command -v systemctl >/dev/null 2>&1; then
-    if sudo systemctl enable --now sshd 2>/dev/null && sudo systemctl reload sshd; then
-        :
-    elif sudo systemctl enable --now ssh 2>/dev/null && sudo systemctl reload ssh; then
-        :
-    else
-        echo "ERROR: Could not enable and reload the SSH service."
-        exit 1
-    fi
-elif command -v rc-service >/dev/null 2>&1; then
-    sudo rc-update add sshd default
-    sudo rc-service sshd restart
-elif command -v service >/dev/null 2>&1; then
-    if ! sudo service ssh restart; then
+activate_ssh_service() {
+    if command -v systemctl >/dev/null 2>&1; then
+        if sudo systemctl enable --now sshd 2>/dev/null && sudo systemctl reload sshd; then
+            return
+        elif sudo systemctl enable --now ssh 2>/dev/null && sudo systemctl reload ssh; then
+            return
+        fi
+    elif command -v rc-service >/dev/null 2>&1; then
+        sudo rc-update add sshd default && sudo rc-service sshd restart
+        return
+    elif command -v service >/dev/null 2>&1; then
+        if sudo service ssh restart; then
+            return
+        fi
         sudo service sshd restart
+        return
     fi
-else
-    echo "ERROR: No supported service manager was found to reload SSH."
+
+    return 1
+}
+
+if ! activate_ssh_service; then
+    restore_previous_config
+    if sudo sshd -t; then
+        activate_ssh_service || true
+    fi
+    echo "ERROR: Could not activate SSH; the previous configuration was restored."
     exit 1
 fi
 

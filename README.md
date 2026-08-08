@@ -40,13 +40,13 @@ The script prompts for the user to configure, creates that account and its home
 directory if necessary, and then performs these steps:
 
 1. Installs sudo, Git, tmux, Fish, GNU Stow, and the OpenSSH server. On Debian,
-   it also installs unattended-upgrades and applies the bundled
-   `config/apt/50unattended-upgrades` configuration.
-2. Adds the configured user's SSH public key, then disables SSH root login and
-   all non-public-key authentication.
-3. Initializes the Bash and Fish Git submodules under `config/` at their
+   it also installs and enables unattended-upgrades using the bundled APT
+   configuration.
+2. Initializes the Bash and Fish Git submodules under `config/` at their
    pinned revisions.
-4. Runs the remaining setup scripts.
+3. Adds the configured user's SSH public key, then disables SSH root login and
+   all non-public-key authentication.
+4. Runs the remaining setup scripts, stopping immediately if one fails.
 5. Refreshes exact copies of the Bash and Fish configuration beneath
    `~/.local/share/setup-scripts` for the selected user.
 6. Moves conflicting files into a timestamped directory beneath

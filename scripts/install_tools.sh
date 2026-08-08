@@ -8,6 +8,7 @@ fi
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 UNATTENDED_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/50unattended-upgrades"
+AUTO_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/20auto-upgrades"
 
 is_debian() {
     [[ -r /etc/os-release ]] || return 1
@@ -29,12 +30,15 @@ install_packages() {
             openssh-server
 
         if is_debian; then
-            if [[ ! -f "$UNATTENDED_UPGRADES_CONFIG" ]]; then
-                echo "ERROR: Unattended-upgrades config not found: $UNATTENDED_UPGRADES_CONFIG"
+            if [[ ! -f "$UNATTENDED_UPGRADES_CONFIG" ]] || [[ ! -f "$AUTO_UPGRADES_CONFIG" ]]; then
+                echo "ERROR: Bundled unattended-upgrades configuration is incomplete."
                 exit 1
             fi
 
             apt-get install -y unattended-upgrades
+            install -m 0644 \
+                "$AUTO_UPGRADES_CONFIG" \
+                /etc/apt/apt.conf.d/20auto-upgrades
             install -m 0644 \
                 "$UNATTENDED_UPGRADES_CONFIG" \
                 /etc/apt/apt.conf.d/50unattended-upgrades
