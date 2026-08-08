@@ -76,7 +76,8 @@ directory if necessary, and then performs these steps:
    configuration. On DNF-based systems, it enables DNF4 or DNF5 automatic
    updates and a daily 06:00 reboot-if-required timer. If a DNF distribution
    does not provide a requested tool in its enabled native repositories, setup
-   attempts to enable CRB/PowerTools and EPEL, then retries.
+   attempts to enable CRB/PowerTools and EPEL, then retries. If eza remains
+   unavailable, setup installs its official release binary on x86-64 or ARM64.
 2. Initializes the Bash and Fish Git submodules under `config/` at their
    pinned revisions.
 3. When the `docker` argument is supplied, installs and starts Docker Engine

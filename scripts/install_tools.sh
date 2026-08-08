@@ -72,6 +72,38 @@ configure_eza_apt_repository() {
     chmod 0644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
 }
 
+install_eza_binary() {
+    local architecture download_dir archive
+
+    case "$(uname -m)" in
+        x86_64)
+            architecture="x86_64"
+            ;;
+        aarch64 | arm64)
+            architecture="aarch64"
+            ;;
+        *)
+            echo "ERROR: No eza binary installation is configured for architecture '$(uname -m)'."
+            return 1
+            ;;
+    esac
+
+    download_dir="$(mktemp -d)"
+    archive="$download_dir/eza.tar.gz"
+    if ! curl -fsSL \
+        "https://github.com/eza-community/eza/releases/latest/download/eza_${architecture}-unknown-linux-gnu.tar.gz" \
+        -o "$archive" ||
+       ! tar -xzf "$archive" -C "$download_dir" ||
+       [[ ! -f "$download_dir/eza" ]]; then
+        rm -rf -- "$download_dir"
+        echo "ERROR: Failed to download and extract eza."
+        return 1
+    fi
+
+    install -m 0755 "$download_dir/eza" /usr/local/bin/eza
+    rm -rf -- "$download_dir"
+}
+
 ensure_bat_command() {
     if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
         install -d -m 0755 /usr/local/bin
@@ -212,9 +244,14 @@ install_packages() {
             dnf-automatic \
             dnf-plugins-core
 
-        if ! dnf install -y fish stow helix bat eza ncdu; then
+        if ! dnf install -y fish stow helix bat ncdu; then
             enable_dnf_extra_repositories
-            dnf install -y fish stow helix bat eza ncdu
+            dnf install -y fish stow helix bat ncdu
+        fi
+
+        if ! dnf install -y eza; then
+            echo "eza is not available from enabled DNF repositories; installing its release binary..."
+            install_eza_binary
         fi
 
         configure_dnf_automatic
