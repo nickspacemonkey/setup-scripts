@@ -26,6 +26,7 @@ SETUP_SCRIPTS=(
     "$HELPER_DIR/stow-dotfiles.sh"
 )
 REQUESTED_USER=""
+INSTALL_DOCKER=0
 
 if (( $# > 0 )); then
     case "$1" in
@@ -54,8 +55,22 @@ if (( $# > 0 )); then
 fi
 
 if (( $# > 0 )); then
+    if [[ "$1" == "docker" ]]; then
+        INSTALL_DOCKER=1
+        shift
+    else
+        echo "ERROR: Unexpected argument: $1"
+        exit 1
+    fi
+fi
+
+if (( $# > 0 )); then
     echo "ERROR: Unexpected argument: $1"
     exit 1
+fi
+
+if (( INSTALL_DOCKER != 0 )); then
+    SETUP_SCRIPTS=("$HELPER_DIR/install-docker.sh" "${SETUP_SCRIPTS[@]}")
 fi
 
 install_git() {
@@ -130,7 +145,11 @@ bootstrap_repository() {
         fi
     fi
 
-    exec bash "$checkout/setup.sh" --user "$bootstrap_user"
+    if (( INSTALL_DOCKER != 0 )); then
+        exec bash "$checkout/setup.sh" "$bootstrap_user" docker
+    else
+        exec bash "$checkout/setup.sh" "$bootstrap_user"
+    fi
 }
 
 # A downloaded copy of setup.sh can bootstrap the complete repository.

@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if (( EUID != 0 )); then
+    echo "ERROR: This script must be run as root."
+    exit 1
+fi
+
+if [[ ! -r /etc/os-release ]]; then
+    echo "ERROR: Cannot detect the host distribution: /etc/os-release is missing."
+    exit 1
+fi
+
+# shellcheck disable=SC1091
+. /etc/os-release
+
+DOCKER_PACKAGES=(
+    docker-ce
+    docker-ce-cli
+    containerd.io
+    docker-buildx-plugin
+    docker-compose-plugin
+)
+
+install_docker_apt() {
+    local docker_distribution="$ID"
+    local codename architecture
+
+    if [[ "$docker_distribution" != "debian" ]] && [[ "$docker_distribution" != "ubuntu" ]]; then
+        echo "ERROR: Docker's APT repository does not support $docker_distribution directly."
+        exit 1
+    fi
+
+    codename="${UBUNTU_CODENAME:-${VERSION_CODENAME:-}}"
+    if [[ -z "$codename" ]]; then
+        echo "ERROR: Could not determine the distribution codename."
+        exit 1
+    fi
+
+    apt-get update
+    apt-get install -y ca-certificates curl
+    install -d -m 0755 /etc/apt/keyrings
+    curl -fsSL "https://download.docker.com/linux/$docker_distribution/gpg" \
+        -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+
+    architecture="$(dpkg --print-architecture)"
+    cat > /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/$docker_distribution
+Suites: $codename
+Components: stable
+Architectures: $architecture
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+    apt-get update
+    apt-get install -y "${DOCKER_PACKAGES[@]}"
+}
+
+install_docker_dnf() {
+    local repository_distribution
+    local repository_url
+
+    case "$ID" in
+        fedora|rhel|centos)
+            repository_distribution="$ID"
+            ;;
+        rocky|almalinux)
+            repository_distribution="centos"
+            echo "NOTICE: Docker does not verify $ID; using its CentOS-compatible repository."
+            ;;
+        *)
+            echo "ERROR: Docker does not provide a repository mapping for DNF distribution '$ID'."
+            exit 1
+            ;;
+    esac
+
+    dnf install -y dnf-plugins-core
+    repository_url="https://download.docker.com/linux/$repository_distribution/docker-ce.repo"
+
+    if [[ ! -f /etc/yum.repos.d/docker-ce.repo ]]; then
+        if dnf config-manager addrepo --help >/dev/null 2>&1; then
+            dnf config-manager addrepo --from-repofile "$repository_url"
+        else
+            dnf config-manager --add-repo "$repository_url"
+        fi
+    fi
+
+    dnf install -y "${DOCKER_PACKAGES[@]}"
+}
+
+start_docker() {
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl enable --now docker.service
+    elif command -v rc-update >/dev/null 2>&1 && command -v rc-service >/dev/null 2>&1; then
+        rc-update add docker default
+        rc-service docker start
+    else
+        echo "ERROR: No supported service manager was found to start Docker."
+        exit 1
+    fi
+}
+
+if command -v apt-get >/dev/null 2>&1; then
+    install_docker_apt
+elif command -v dnf >/dev/null 2>&1; then
+    install_docker_dnf
+elif command -v pacman >/dev/null 2>&1; then
+    pacman -S --needed --noconfirm docker docker-buildx docker-compose
+elif command -v zypper >/dev/null 2>&1; then
+    zypper --non-interactive install docker docker-compose
+elif command -v apk >/dev/null 2>&1; then
+    apk add docker docker-cli-buildx docker-cli-compose
+else
+    echo "ERROR: Unsupported package manager for Docker installation."
+    exit 1
+fi
+
+start_docker
+
+docker --version
+docker compose version
+echo "Docker Engine installation complete."

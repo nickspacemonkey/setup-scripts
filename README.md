@@ -22,13 +22,13 @@ and core utility packages to be installed before running the setup.
 One-line installation for user `nick`:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- --user nick
+wget -qO- https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- nick docker
 ```
 
 One-line installation with `curl`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- --user nick
+curl -fsSL https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- nick docker
 ```
 
 Or download it with `wget`:
@@ -42,6 +42,14 @@ To skip the username prompt, pass the account with `--user`:
 
 ```bash
 sudo bash setup.sh --user nick
+```
+
+Docker installation is optional. Pass `docker` as the second argument, after
+the username, to install
+and start Docker Engine with Buildx and Compose:
+
+```bash
+sudo bash setup.sh nick docker
 ```
 
 Set `SETUP_SCRIPTS_CHECKOUT` to use a different checkout location.
@@ -66,15 +74,17 @@ directory if necessary, and then performs these steps:
    attempts to enable CRB/PowerTools and EPEL, then retries.
 2. Initializes the Bash and Fish Git submodules under `config/` at their
    pinned revisions.
-3. Sets the system timezone to `Europe/London`.
-4. Adds the configured user's SSH public key, then disables SSH root login and
+3. When the `docker` argument is supplied, installs and starts Docker Engine
+   with Buildx and Compose using the host distribution's package format.
+4. Sets the system timezone to `Europe/London`.
+5. Adds the configured user's SSH public key, then disables SSH root login and
    all non-public-key authentication.
-5. Runs the remaining setup scripts, stopping immediately if one fails.
-6. Refreshes exact copies of the Bash and Fish configuration beneath
+6. Runs the remaining setup scripts, stopping immediately if one fails.
+7. Refreshes exact copies of the Bash and Fish configuration beneath
    `~/.local/share/setup-scripts` for the selected user.
-7. Moves conflicting files into a timestamped directory beneath
+8. Moves conflicting files into a timestamped directory beneath
    `~/.local/state/setup-scripts/backups`, private to the selected user.
-8. Stows the configuration into the selected user's home directory.
+9. Stows the configuration into the selected user's home directory.
 
 Conflict handling includes files, leaf symlinks, and foreign symlinks in
 intermediate directory components.
