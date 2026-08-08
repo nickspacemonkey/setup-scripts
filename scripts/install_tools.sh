@@ -9,11 +9,62 @@ fi
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 APT_CONFIG_DIR="$SCRIPT_DIR/../config/apt"
 AUTO_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/20auto-upgrades"
+DNF_AUTOMATIC_CONFIG="$SCRIPT_DIR/../config/dnf/automatic.conf"
+REBOOT_CHECK_SCRIPT="$SCRIPT_DIR/reboot-if-needed.sh"
+SYSTEMD_CONFIG_DIR="$SCRIPT_DIR/../config/systemd"
 
 get_distro_id() {
     [[ -r /etc/os-release ]] || return
 
     (. /etc/os-release && printf '%s' "${ID:-}")
+}
+
+configure_dnf_automatic() {
+    local automatic_timer=""
+    local unit
+
+    if [[ ! -f "$DNF_AUTOMATIC_CONFIG" ]] ||
+       [[ ! -f "$REBOOT_CHECK_SCRIPT" ]] ||
+       [[ ! -f "$SYSTEMD_CONFIG_DIR/setup-scripts-reboot-if-needed.service" ]] ||
+       [[ ! -f "$SYSTEMD_CONFIG_DIR/setup-scripts-reboot-if-needed.timer" ]]; then
+        echo "ERROR: Bundled DNF automatic-update configuration is incomplete."
+        exit 1
+    fi
+
+    install -d -m 0755 /etc/dnf /usr/local/sbin
+    install -m 0644 "$DNF_AUTOMATIC_CONFIG" /etc/dnf/automatic.conf
+    install -m 0755 "$REBOOT_CHECK_SCRIPT" /usr/local/sbin/setup-scripts-reboot-if-needed
+    install -m 0644 "$SYSTEMD_CONFIG_DIR/setup-scripts-reboot-if-needed.service" /etc/systemd/system/
+    install -m 0644 "$SYSTEMD_CONFIG_DIR/setup-scripts-reboot-if-needed.timer" /etc/systemd/system/
+
+    systemctl daemon-reload
+
+    if command -v dnf5 >/dev/null 2>&1 &&
+       dnf5 automatic --help >/dev/null 2>&1 &&
+       systemctl cat dnf5-automatic.timer >/dev/null 2>&1; then
+        automatic_timer="dnf5-automatic.timer"
+    elif systemctl cat dnf-automatic-install.timer >/dev/null 2>&1; then
+        automatic_timer="dnf-automatic-install.timer"
+    elif systemctl cat dnf-automatic.timer >/dev/null 2>&1; then
+        automatic_timer="dnf-automatic.timer"
+    else
+        echo "ERROR: No supported DNF automatic-update timer was found."
+        exit 1
+    fi
+
+    for unit in \
+        dnf5-automatic.timer \
+        dnf-automatic.timer \
+        dnf-automatic-install.timer \
+        dnf-automatic-download.timer \
+        dnf-automatic-notifyonly.timer; do
+        if [[ "$unit" != "$automatic_timer" ]]; then
+            systemctl disable --now "$unit" >/dev/null 2>&1 || true
+        fi
+    done
+
+    systemctl enable --now "$automatic_timer"
+    systemctl enable --now setup-scripts-reboot-if-needed.timer
 }
 
 install_packages() {
@@ -53,7 +104,11 @@ install_packages() {
             tmux \
             fish \
             stow \
-            openssh-server
+            openssh-server \
+            dnf-automatic \
+            dnf-plugins-core
+
+        configure_dnf_automatic
 
     elif command -v yum >/dev/null 2>&1; then
         yum install -y \
@@ -62,7 +117,11 @@ install_packages() {
             tmux \
             fish \
             stow \
-            openssh-server
+            openssh-server \
+            dnf-automatic \
+            dnf-plugins-core
+
+        configure_dnf_automatic
 
     elif command -v pacman >/dev/null 2>&1; then
         pacman -Syu --noconfirm \

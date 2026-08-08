@@ -12,6 +12,7 @@ sudo, and stowing Bash and Fish configuration from Git submodules.
 - Account tools: `getent`, `id`, and either `useradd` or `adduser`
 - Core utilities: `install`, `find`, and `readlink`
 - `visudo`, normally provided with sudo
+- systemd on DNF-based systems, for automatic-update and reboot timers
 
 Minimal distributions and container images may require their account-management
 and core utility packages to be installed before running the setup.
@@ -60,7 +61,8 @@ directory if necessary, and then performs these steps:
 
 1. Installs sudo, Git, tmux, Fish, GNU Stow, and the OpenSSH server. On Debian
    and Ubuntu, it also installs and enables unattended-upgrades using a bundled
-   distribution-specific APT configuration.
+   distribution-specific APT configuration. On DNF-based systems, it enables
+   DNF4 or DNF5 automatic updates and a daily 06:00 reboot-if-required timer.
 2. Initializes the Bash and Fish Git submodules under `config/` at their
    pinned revisions.
 3. Adds the configured user's SSH public key, then disables SSH root login and
@@ -97,6 +99,8 @@ The setup automatically:
   `~/.ssh/authorized_keys` if it is not already present.
 - Configures SSH to deny root login and require public-key authentication,
   then validates and reloads the SSH server configuration.
+- Installs updates automatically and permits an unattended reboot at 06:00
+  when APT or DNF reports that one is required, even with users logged in.
 - Grants the selected user unrestricted passwordless sudo through a validated
   file in `/etc/sudoers.d`.
 
