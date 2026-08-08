@@ -85,7 +85,8 @@ directory if necessary, and then performs these steps:
    Rocky Linux and AlmaLinux follow Docker's RHEL repository procedure,
    including removal of packages that conflict with Docker Engine. Setup also
    copies the bundled Docker Compose helper scripts into the selected user's
-   `~/docker` directory.
+   `~/docker` directory and configures root's crontab to run
+   `docker_cron.sh` daily at 04:00.
 4. Sets the system timezone to `Europe/London`.
 5. Adds the configured user's SSH public key, then disables SSH root login and
    all non-public-key authentication.
@@ -126,6 +127,9 @@ The setup automatically:
   when APT or DNF reports that one is required, even with users logged in.
 - Grants the selected user unrestricted passwordless sudo through a validated
   file in `/etc/sudoers.d`.
+- Runs the Docker maintenance helper as root every day at 04:00 when Docker
+  installation is requested. The helper updates Compose projects and prunes
+  unused Docker images, containers, networks, and volumes.
 
 Review these scripts and confirm that the key and sudo policy are appropriate
 before running the setup on a machine.
