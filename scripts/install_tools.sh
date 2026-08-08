@@ -50,10 +50,27 @@ install_helix_debian() {
     rm -rf -- "$download_dir"
 }
 
+configure_eza_apt_repository() {
+    install -d -m 0755 /etc/apt/keyrings
+    curl -fsSL https://raw.githubusercontent.com/eza-community/eza/main/deb.asc |
+        gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg
+    printf '%s\n' \
+        'deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main' \
+        > /etc/apt/sources.list.d/gierens.list
+    chmod 0644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+}
+
+ensure_bat_command() {
+    if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
+        install -d -m 0755 /usr/local/bin
+        ln -s "$(command -v batcat)" /usr/local/bin/bat
+    fi
+}
+
 enable_dnf_extra_repositories() {
     local major_version
 
-    echo "Fish, Stow, or Helix was not found in the enabled repositories; trying EPEL..."
+    echo "A requested tool was not found in the enabled repositories; trying EPEL..."
     if ! dnf install -y dnf-plugins-core epel-release; then
         echo "ERROR: This DNF distribution does not provide epel-release automatically."
         return 1
@@ -127,7 +144,8 @@ install_packages() {
     if command -v apt-get >/dev/null 2>&1; then
         distro_id="$(get_distro_id)"
         apt-get update
-        apt-get install -y ca-certificates curl
+        apt-get install -y ca-certificates curl gpg
+        configure_eza_apt_repository
 
         if [[ "$distro_id" == "ubuntu" ]]; then
             apt-get install -y software-properties-common
@@ -142,7 +160,11 @@ install_packages() {
             tmux \
             fish \
             stow \
+            bat \
+            eza \
             openssh-server
+
+        ensure_bat_command
 
         if [[ "$distro_id" == "ubuntu" ]]; then
             apt-get install -y helix
@@ -179,9 +201,9 @@ install_packages() {
             dnf-automatic \
             dnf-plugins-core
 
-        if ! dnf install -y fish stow helix; then
+        if ! dnf install -y fish stow helix bat eza; then
             enable_dnf_extra_repositories
-            dnf install -y fish stow helix
+            dnf install -y fish stow helix bat eza
         fi
 
         configure_dnf_automatic
@@ -194,6 +216,8 @@ install_packages() {
             tmux \
             fish \
             stow \
+            bat \
+            eza \
             openssh-server \
             dnf-automatic \
             dnf-plugins-core \
@@ -209,6 +233,8 @@ install_packages() {
             tmux \
             fish \
             stow \
+            bat \
+            eza \
             openssh \
             helix
 
@@ -220,6 +246,8 @@ install_packages() {
             tmux \
             fish \
             stow \
+            bat \
+            eza \
             openssh-server \
             helix
 
@@ -231,6 +259,8 @@ install_packages() {
             tmux \
             fish \
             stow \
+            bat \
+            eza \
             openssh-server \
             helix
 
@@ -240,7 +270,7 @@ install_packages() {
     fi
 }
 
-echo "Installing sudo, Git, timezone data, tmux, fish, stow, Helix, and OpenSSH server..."
+echo "Installing sudo, Git, timezone data, tmux, fish, stow, Helix, bat, eza, and OpenSSH server..."
 install_packages
 
 echo
@@ -251,6 +281,8 @@ command -v git >/dev/null && git --version
 command -v tmux >/dev/null && tmux -V
 command -v fish >/dev/null && fish --version
 command -v stow >/dev/null && stow --version | head -n1
+command -v bat >/dev/null && bat --version
+command -v eza >/dev/null && eza --version | sed -n '1p'
 if command -v hx >/dev/null 2>&1; then
     hx --version | sed -n '1p'
 elif command -v helix >/dev/null 2>&1; then
