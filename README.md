@@ -25,12 +25,10 @@ One-line installation for user `nick`:
 wget -qO- https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- --user nick
 ```
 
-Run a downloaded copy of `setup.sh` by itself to install Git, clone the full
-repository into `/opt/setup-scripts`, and continue from that checkout:
+One-line installation with `curl`:
 
 ```bash
-curl -O https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh
-sudo bash setup.sh
+curl -fsSL https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- --user nick
 ```
 
 Or download it with `wget`:
