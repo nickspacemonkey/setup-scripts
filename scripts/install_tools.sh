@@ -19,7 +19,8 @@ install_packages() {
             sudo \
             tmux \
             fish \
-            stow
+            stow \
+            openssh-server
 
         if is_debian; then
             if [[ ! -f "$UNATTENDED_UPGRADES_CONFIG" ]]; then
@@ -38,35 +39,40 @@ install_packages() {
             sudo \
             tmux \
             fish \
-            stow
+            stow \
+            openssh-server
 
     elif command -v yum >/dev/null 2>&1; then
         sudo yum install -y \
             sudo \
             tmux \
             fish \
-            stow
+            stow \
+            openssh-server
 
     elif command -v pacman >/dev/null 2>&1; then
         sudo pacman -Syu --noconfirm \
             sudo \
             tmux \
             fish \
-            stow
+            stow \
+            openssh
 
     elif command -v zypper >/dev/null 2>&1; then
         sudo zypper --non-interactive install \
             sudo \
             tmux \
             fish \
-            stow
+            stow \
+            openssh-server
 
     elif command -v apk >/dev/null 2>&1; then
         sudo apk add \
             sudo \
             tmux \
             fish \
-            stow
+            stow \
+            openssh-server
 
     else
         echo "ERROR: Unsupported package manager."
@@ -74,7 +80,7 @@ install_packages() {
     fi
 }
 
-echo "Installing sudo, tmux, fish, and stow..."
+echo "Installing sudo, tmux, fish, stow, and OpenSSH server..."
 install_packages
 
 echo
@@ -84,6 +90,7 @@ command -v sudo >/dev/null && sudo --version | sed -n '1p'
 command -v tmux >/dev/null && tmux -V
 command -v fish >/dev/null && fish --version
 command -v stow >/dev/null && stow --version | head -n1
+command -v sshd >/dev/null && sshd -V 2>&1 | sed -n '1p'
 
 echo
 echo "Installation complete."

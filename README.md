@@ -29,17 +29,19 @@ bash setup.sh
 The script prompts for the user to configure, creates that account and its home
 directory if necessary, and then performs these steps:
 
-1. Installs sudo, tmux, Fish, and GNU Stow. On Debian, it also installs
-   unattended-upgrades and applies the bundled
+1. Installs sudo, tmux, Fish, GNU Stow, and the OpenSSH server. On Debian, it
+   also installs unattended-upgrades and applies the bundled
    `config/apt/50unattended-upgrades` configuration.
-2. Initializes the `dotfiles` and `fishfiles` Git submodules at their pinned
+2. Adds the configured user's SSH public key, then disables SSH root login and
+   all non-public-key authentication.
+3. Initializes the `dotfiles` and `fishfiles` Git submodules at their pinned
    revisions.
-3. Runs the remaining setup scripts.
-4. Refreshes exact copies of the Bash and Fish configuration beneath
+4. Runs the remaining setup scripts.
+5. Refreshes exact copies of the Bash and Fish configuration beneath
    `~/.local/share/setup-scripts` for the selected user.
-5. Moves conflicting files into a timestamped directory beneath
+6. Moves conflicting files into a timestamped directory beneath
    `~/.local/state/setup-scripts/backups`, private to the selected user.
-6. Stows the configuration into the selected user's home directory.
+7. Stows the configuration into the selected user's home directory.
 
 Conflict handling includes files, leaf symlinks, and foreign symlinks in
 intermediate directory components.
@@ -64,6 +66,8 @@ The setup automatically:
 
 - Adds the public key embedded in `scripts/setup-authorized-keys.sh` to
   `~/.ssh/authorized_keys` if it is not already present.
+- Configures SSH to deny root login and require public-key authentication,
+  then validates and reloads the SSH server configuration.
 - Grants the selected user unrestricted passwordless sudo through a validated
   file in `/etc/sudoers.d`.
 

@@ -6,6 +6,7 @@ HELPER_DIR="$SCRIPT_DIR/scripts"
 INSTALL_SCRIPT="$HELPER_DIR/install_tools.sh"
 SETUP_SCRIPTS=(
     "$HELPER_DIR/setup-authorized-keys.sh"
+    "$HELPER_DIR/harden-ssh.sh"
     "$HELPER_DIR/setup-passwordless-sudo.sh"
     "$HELPER_DIR/stow-dotfiles.sh"
 )
