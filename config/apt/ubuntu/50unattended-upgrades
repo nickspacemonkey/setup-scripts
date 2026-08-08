@@ -14,7 +14,6 @@ Unattended-Upgrade::Allowed-Origins {
         "${distro_id}ESM:${distro_codename}-infra-security";
         "${distro_id}:${distro_codename}-updates";
         "Docker:${distro_codename}";
-        "LP-PPA-maveonair-helix-editor:${distro_codename}";
         "LP-PPA-fish-shell-release-4:${distro_codename}";
 //      "${distro_id}:${distro_codename}-proposed";
         "${distro_id}:${distro_codename}-backports";

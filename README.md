@@ -9,7 +9,7 @@ Git submodules.
 - Bash
 - `sudo` access
 - Git, when cloning the repository normally
-- One of the supported package managers: APT, DNF, YUM, Pacman, Zypper, or APK
+- One of the supported package managers: APT, DNF, Pacman, Zypper, or APK
 - Account tools: `getent`, `id`, and either `useradd` or `adduser`
 - Core utilities: `install`, `find`, and `readlink`
 - `visudo`, normally provided with sudo
@@ -20,13 +20,13 @@ and core utility packages to be installed before running the setup.
 
 ## Usage
 
-One-line installation for user `nick`:
+From a root shell, run the one-line installation for user `nick`:
 
 ```bash
 wget -qO- https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- nick docker
 ```
 
-One-line installation with `curl`:
+From a root shell, the equivalent one-line installation with `curl` is:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- nick docker

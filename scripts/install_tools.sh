@@ -28,6 +28,11 @@ get_distro_version_id() {
 install_helix_deb() {
     local architecture asset_url download_dir package_file
 
+    if command -v hx >/dev/null 2>&1 || command -v helix >/dev/null 2>&1; then
+        echo "Helix is already installed; skipping release download."
+        return
+    fi
+
     architecture="$(dpkg --print-architecture)"
     asset_url="$(
         curl -fsSL https://api.github.com/repos/helix-editor/helix/releases/latest |
@@ -53,7 +58,11 @@ install_helix_deb() {
 remove_helix_ppa() {
     local source_file
 
-    for source_file in /etc/apt/sources.list.d/*; do
+    for source_file in \
+        /etc/apt/sources.list.d/maveonair-ubuntu-helix-editor.list \
+        /etc/apt/sources.list.d/maveonair-ubuntu-helix-editor.sources \
+        /etc/apt/sources.list.d/maveonair-ubuntu-helix-editor-*.list \
+        /etc/apt/sources.list.d/maveonair-ubuntu-helix-editor-*.sources; do
         [[ -f "$source_file" ]] || continue
         if grep -q 'maveonair/helix-editor\|maveonair.*helix-editor' "$source_file"; then
             echo "Removing unsupported Helix PPA source: $source_file"
@@ -74,6 +83,11 @@ configure_eza_apt_repository() {
 
 install_eza_binary() {
     local architecture download_dir archive
+
+    if command -v eza >/dev/null 2>&1; then
+        echo "eza is already installed; skipping release download."
+        return
+    fi
 
     case "$(uname -m)" in
         x86_64)
@@ -255,27 +269,6 @@ install_packages() {
             echo "eza is not available from enabled DNF repositories; installing its release binary..."
             install_eza_binary
         fi
-
-        configure_dnf_automatic
-
-    elif command -v yum >/dev/null 2>&1; then
-        yum install -y \
-            sudo \
-            git \
-            tzdata \
-            tmux \
-            curl \
-            wget \
-            ncdu \
-            tar \
-            fish \
-            stow \
-            bat \
-            eza \
-            openssh-server \
-            dnf-automatic \
-            dnf-plugins-core \
-            helix
 
         configure_dnf_automatic
 

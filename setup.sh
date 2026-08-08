@@ -82,8 +82,6 @@ install_git() {
         apt-get install -y git
     elif command -v dnf >/dev/null 2>&1; then
         dnf install -y git
-    elif command -v yum >/dev/null 2>&1; then
-        yum install -y git
     elif command -v pacman >/dev/null 2>&1; then
         pacman -Syu --noconfirm git
     elif command -v zypper >/dev/null 2>&1; then
