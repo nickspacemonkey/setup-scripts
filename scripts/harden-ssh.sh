@@ -52,6 +52,7 @@ PermitEmptyPasswords no
 EOF
 
 sudo install -d -m 0755 "$SSHD_CONFIG_DIR"
+sudo install -d -m 0755 -o root -g root /run/sshd
 
 if sudo test -f "$HARDENING_CONFIG"; then
     BACKUP_CONFIG="$(mktemp)"
@@ -91,19 +92,20 @@ for setting in "${REQUIRED_SETTINGS[@]}"; do
 done
 
 if command -v systemctl >/dev/null 2>&1; then
-    if sudo systemctl reload sshd 2>/dev/null; then
+    if sudo systemctl enable --now sshd 2>/dev/null && sudo systemctl reload sshd; then
         :
-    elif sudo systemctl reload ssh 2>/dev/null; then
+    elif sudo systemctl enable --now ssh 2>/dev/null && sudo systemctl reload ssh; then
         :
     else
-        echo "ERROR: Could not reload the SSH service."
+        echo "ERROR: Could not enable and reload the SSH service."
         exit 1
     fi
 elif command -v rc-service >/dev/null 2>&1; then
-    sudo rc-service sshd reload
+    sudo rc-update add sshd default
+    sudo rc-service sshd restart
 elif command -v service >/dev/null 2>&1; then
-    if ! sudo service ssh reload; then
-        sudo service sshd reload
+    if ! sudo service ssh restart; then
+        sudo service sshd restart
     fi
 else
     echo "ERROR: No supported service manager was found to reload SSH."

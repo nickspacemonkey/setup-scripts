@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 HELPER_DIR="$SCRIPT_DIR/scripts"
 INSTALL_SCRIPT="$HELPER_DIR/install_tools.sh"
 REPOSITORY_URL="https://github.com/nickspacemonkey/setup-scripts.git"
-DEFAULT_CHECKOUT="${HOME}/.local/src/setup-scripts"
+DEFAULT_CHECKOUT="/opt/setup-scripts"
 SETUP_SCRIPTS=(
     "$HELPER_DIR/setup-authorized-keys.sh"
     "$HELPER_DIR/harden-ssh.sh"

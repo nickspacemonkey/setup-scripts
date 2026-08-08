@@ -19,7 +19,7 @@ and core utility packages to be installed before running the setup.
 ## Usage
 
 Run a downloaded copy of `setup.sh` by itself to install Git, clone the full
-repository into `~/.local/src/setup-scripts`, and continue from that checkout:
+repository into `/opt/setup-scripts`, and continue from that checkout:
 
 ```bash
 curl -O https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh

@@ -129,10 +129,9 @@ for index in "${!REPOS[@]}"; do
     fi
 
     sudo find "$user_source" -mindepth 1 -depth -delete
-    sudo -H -u "$TARGET_USER" \
-        env HOME="$TARGET_HOME" \
-        cp -a --no-preserve=ownership "$repo/." "$user_source/"
-    sudo -H -u "$TARGET_USER" rm -f -- "$user_source/.git"
+    sudo cp -a "$repo/." "$user_source/"
+    sudo rm -f -- "$user_source/.git"
+    sudo chown -R "$TARGET_USER:$TARGET_GROUP" "$user_source"
 
     if [[ -n "$(sudo find "$user_source" \( \! -user "$TARGET_USER" -o \! -group "$TARGET_GROUP" \) -print -quit)" ]]; then
         echo "ERROR: Files in $user_source are not owned by $TARGET_USER:$TARGET_GROUP."
