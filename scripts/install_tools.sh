@@ -25,7 +25,7 @@ get_distro_version_id() {
     (. /etc/os-release && printf '%s' "${VERSION_ID:-}")
 }
 
-install_helix_debian() {
+install_helix_deb() {
     local architecture asset_url download_dir package_file
 
     architecture="$(dpkg --print-architecture)"
@@ -48,6 +48,18 @@ install_helix_debian() {
         return 1
     fi
     rm -rf -- "$download_dir"
+}
+
+remove_helix_ppa() {
+    local source_file
+
+    for source_file in /etc/apt/sources.list.d/*; do
+        [[ -f "$source_file" ]] || continue
+        if grep -q 'maveonair/helix-editor\|maveonair.*helix-editor' "$source_file"; then
+            echo "Removing unsupported Helix PPA source: $source_file"
+            rm -f -- "$source_file"
+        fi
+    done
 }
 
 configure_eza_apt_repository() {
@@ -143,14 +155,10 @@ install_packages() {
 
     if command -v apt-get >/dev/null 2>&1; then
         distro_id="$(get_distro_id)"
+        remove_helix_ppa
         apt-get update
         apt-get install -y ca-certificates curl gpg
         configure_eza_apt_repository
-
-        if [[ "$distro_id" == "ubuntu" ]]; then
-            apt-get install -y software-properties-common
-            add-apt-repository -y ppa:maveonair/helix-editor
-        fi
         apt-get update
 
         apt-get install -y \
@@ -169,10 +177,8 @@ install_packages() {
 
         ensure_bat_command
 
-        if [[ "$distro_id" == "ubuntu" ]]; then
-            apt-get install -y helix
-        elif [[ "$distro_id" == "debian" ]]; then
-            install_helix_debian
+        if [[ "$distro_id" == "ubuntu" ]] || [[ "$distro_id" == "debian" ]]; then
+            install_helix_deb
         else
             echo "ERROR: Helix installation is not configured for APT distribution '$distro_id'."
             exit 1
