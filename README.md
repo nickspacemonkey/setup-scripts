@@ -26,6 +26,13 @@ curl -O https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/set
 sudo bash setup.sh
 ```
 
+Or download it with `wget`:
+
+```bash
+wget https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh
+sudo bash setup.sh
+```
+
 Set `SETUP_SCRIPTS_CHECKOUT` to use a different checkout location.
 
 Alternatively, clone the repository and run the main setup script:
