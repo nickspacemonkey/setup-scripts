@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if (( EUID != 0 )); then
+    echo "ERROR: This script must be run as root."
+    exit 1
+fi
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 UNATTENDED_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/50unattended-upgrades"
 
@@ -14,8 +19,8 @@ is_debian() {
 
 install_packages() {
     if command -v apt-get >/dev/null 2>&1; then
-        sudo apt-get update
-        sudo apt-get install -y \
+        apt-get update
+        apt-get install -y \
             sudo \
             git \
             tmux \
@@ -29,14 +34,14 @@ install_packages() {
                 exit 1
             fi
 
-            sudo apt-get install -y unattended-upgrades
-            sudo install -m 0644 \
+            apt-get install -y unattended-upgrades
+            install -m 0644 \
                 "$UNATTENDED_UPGRADES_CONFIG" \
                 /etc/apt/apt.conf.d/50unattended-upgrades
         fi
 
     elif command -v dnf >/dev/null 2>&1; then
-        sudo dnf install -y \
+        dnf install -y \
             sudo \
             git \
             tmux \
@@ -45,7 +50,7 @@ install_packages() {
             openssh-server
 
     elif command -v yum >/dev/null 2>&1; then
-        sudo yum install -y \
+        yum install -y \
             sudo \
             git \
             tmux \
@@ -54,7 +59,7 @@ install_packages() {
             openssh-server
 
     elif command -v pacman >/dev/null 2>&1; then
-        sudo pacman -Syu --noconfirm \
+        pacman -Syu --noconfirm \
             sudo \
             git \
             tmux \
@@ -63,7 +68,7 @@ install_packages() {
             openssh
 
     elif command -v zypper >/dev/null 2>&1; then
-        sudo zypper --non-interactive install \
+        zypper --non-interactive install \
             sudo \
             git \
             tmux \
@@ -72,7 +77,7 @@ install_packages() {
             openssh-server
 
     elif command -v apk >/dev/null 2>&1; then
-        sudo apk add \
+        apk add \
             sudo \
             git \
             tmux \
