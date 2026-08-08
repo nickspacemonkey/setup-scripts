@@ -18,7 +18,24 @@ fi
 TARGET_GROUP="$(id -gn "$TARGET_USER")"
 STOW_SOURCE_ROOT="$TARGET_HOME/.local/share/setup-scripts"
 BACKUP_ROOT="$TARGET_HOME/.local/state/setup-scripts/backups/$(date +%Y%m%d-%H%M%S)-$$"
+FISH_DATA_DIR="$TARGET_HOME/.local/share/fish"
 backup_created=0
+
+ensure_user_directory() {
+    local directory="$1"
+    local mode="$2"
+
+    if [[ -L "$directory" ]] || [[ -e "$directory" && ! -d "$directory" ]]; then
+        echo "ERROR: Expected a real directory but found another file type: $directory"
+        exit 1
+    fi
+
+    if [[ ! -d "$directory" ]]; then
+        sudo install -d -m "$mode" -o "$TARGET_USER" -g "$TARGET_GROUP" "$directory"
+    else
+        sudo chown "$TARGET_USER:$TARGET_GROUP" "$directory"
+    fi
+}
 
 backup_target() {
     local target_path="$1"
@@ -90,10 +107,12 @@ backup_conflicts() {
     done < <(find "$source_root" \( -type f -o -type l \) -print0)
 }
 
-sudo install -d -m 0755 \
-    -o "$TARGET_USER" \
-    -g "$TARGET_GROUP" \
-    "$STOW_SOURCE_ROOT"
+ensure_user_directory "$TARGET_HOME/.local" 0700
+ensure_user_directory "$TARGET_HOME/.local/share" 0700
+ensure_user_directory "$TARGET_HOME/.local/state" 0700
+ensure_user_directory "$STOW_SOURCE_ROOT" 0755
+ensure_user_directory "$FISH_DATA_DIR" 0700
+sudo find "$FISH_DATA_DIR" -xdev -exec chown -h "$TARGET_USER:$TARGET_GROUP" {} +
 
 REPOS=(
     "$REPO_ROOT/config/bash"
