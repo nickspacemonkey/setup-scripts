@@ -6,7 +6,13 @@ if (( EUID != 0 )); then
     exit 1
 fi
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+RUNNING_FROM_STDIN=0
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+    SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+else
+    RUNNING_FROM_STDIN=1
+    SCRIPT_DIR="$PWD"
+fi
 HELPER_DIR="$SCRIPT_DIR/scripts"
 INSTALL_SCRIPT="$HELPER_DIR/install_tools.sh"
 REPOSITORY_URL="https://github.com/nickspacemonkey/setup-scripts.git"
@@ -127,7 +133,7 @@ bootstrap_repository() {
 }
 
 # A downloaded copy of setup.sh can bootstrap the complete repository.
-if [[ ! -f "$INSTALL_SCRIPT" ]]; then
+if (( RUNNING_FROM_STDIN != 0 )) || [[ ! -f "$INSTALL_SCRIPT" ]]; then
     bootstrap_repository "$@"
 fi
 
