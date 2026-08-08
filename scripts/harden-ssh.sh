@@ -12,6 +12,7 @@ HARDENING_CONFIG="$SSHD_CONFIG_DIR/00-setup-scripts-hardening.conf"
 AUTHORIZED_KEYS="$TARGET_HOME/.ssh/authorized_keys"
 TEMP_CONFIG=""
 BACKUP_CONFIG=""
+EFFECTIVE_CONFIG=""
 
 cleanup() {
     if [[ -n "$TEMP_CONFIG" ]]; then
@@ -67,16 +68,27 @@ restore_previous_config() {
     fi
 }
 
-if ! sudo sshd -t ||
-   ! sudo sshd -T | grep -qx 'permitrootlogin no' ||
-   ! sudo sshd -T | grep -qx 'pubkeyauthentication yes' ||
-   ! sudo sshd -T | grep -qx 'authenticationmethods publickey' ||
-   ! sudo sshd -T | grep -qx 'passwordauthentication no' ||
-   ! sudo sshd -T | grep -qx 'kbdinteractiveauthentication no'; then
+if ! sudo sshd -t || ! EFFECTIVE_CONFIG="$(sudo sshd -T)"; then
     restore_previous_config
-    echo "ERROR: SSH hardening validation failed; the previous config was restored."
+    echo "ERROR: SSH configuration validation failed; the previous config was restored."
     exit 1
 fi
+
+REQUIRED_SETTINGS=(
+    "permitrootlogin no"
+    "pubkeyauthentication yes"
+    "authenticationmethods publickey"
+    "passwordauthentication no"
+    "kbdinteractiveauthentication no"
+)
+
+for setting in "${REQUIRED_SETTINGS[@]}"; do
+    if ! grep -Fqx "$setting" <<< "$EFFECTIVE_CONFIG"; then
+        restore_previous_config
+        echo "ERROR: Effective SSH setting is not '$setting'; the previous config was restored."
+        exit 1
+    fi
+done
 
 if command -v systemctl >/dev/null 2>&1; then
     if sudo systemctl reload sshd 2>/dev/null; then
