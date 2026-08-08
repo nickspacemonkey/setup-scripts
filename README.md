@@ -29,7 +29,9 @@ bash setup.sh
 The script prompts for the user to configure, creates that account and its home
 directory if necessary, and then performs these steps:
 
-1. Installs sudo, tmux, Fish, and GNU Stow.
+1. Installs sudo, tmux, Fish, and GNU Stow. On Debian, it also installs
+   unattended-upgrades and applies the bundled
+   `config/apt/50unattended-upgrades` configuration.
 2. Initializes the `dotfiles` and `fishfiles` Git submodules at their pinned
    revisions.
 3. Runs the remaining setup scripts.
