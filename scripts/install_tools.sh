@@ -150,14 +150,17 @@ install_packages() {
         if [[ "$distro_id" == "ubuntu" ]]; then
             apt-get install -y software-properties-common
             add-apt-repository -y ppa:maveonair/helix-editor
-            apt-get update
         fi
+        apt-get update
 
         apt-get install -y \
             sudo \
             git \
             tzdata \
             tmux \
+            nala \
+            wget \
+            ncdu \
             fish \
             stow \
             bat \
@@ -197,13 +200,15 @@ install_packages() {
             git \
             tzdata \
             tmux \
+            curl \
+            wget \
             openssh-server \
             dnf-automatic \
             dnf-plugins-core
 
-        if ! dnf install -y fish stow helix bat eza; then
+        if ! dnf install -y fish stow helix bat eza ncdu; then
             enable_dnf_extra_repositories
-            dnf install -y fish stow helix bat eza
+            dnf install -y fish stow helix bat eza ncdu
         fi
 
         configure_dnf_automatic
@@ -214,6 +219,9 @@ install_packages() {
             git \
             tzdata \
             tmux \
+            curl \
+            wget \
+            ncdu \
             fish \
             stow \
             bat \
@@ -231,6 +239,9 @@ install_packages() {
             git \
             tzdata \
             tmux \
+            curl \
+            wget \
+            ncdu \
             fish \
             stow \
             bat \
@@ -244,6 +255,9 @@ install_packages() {
             git \
             timezone \
             tmux \
+            curl \
+            wget \
+            ncdu \
             fish \
             stow \
             bat \
@@ -257,6 +271,9 @@ install_packages() {
             git \
             tzdata \
             tmux \
+            curl \
+            wget \
+            ncdu \
             fish \
             stow \
             bat \
@@ -270,7 +287,7 @@ install_packages() {
     fi
 }
 
-echo "Installing sudo, Git, timezone data, tmux, fish, stow, Helix, bat, eza, and OpenSSH server..."
+echo "Installing sudo, Git, timezone data, tmux, curl, wget, ncdu, fish, stow, Helix, bat, eza, and OpenSSH server (plus nala on APT systems)..."
 install_packages
 
 echo
@@ -279,6 +296,10 @@ echo "-------------------"
 command -v sudo >/dev/null && sudo --version | sed -n '1p'
 command -v git >/dev/null && git --version
 command -v tmux >/dev/null && tmux -V
+command -v nala >/dev/null && nala --version | sed -n '1p'
+command -v curl >/dev/null && curl --version | sed -n '1p'
+command -v wget >/dev/null && wget --version | sed -n '1p'
+command -v ncdu >/dev/null && ncdu --version | sed -n '1p'
 command -v fish >/dev/null && fish --version
 command -v stow >/dev/null && stow --version | head -n1
 command -v bat >/dev/null && bat --version

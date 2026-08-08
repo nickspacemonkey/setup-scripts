@@ -1,8 +1,8 @@
 # Setup Scripts
 
-Personal Linux bootstrap scripts for installing shell tools, Helix, bat, and eza,
-configuring SSH and sudo, and stowing Bash and Fish configuration from Git
-submodules.
+Personal Linux bootstrap scripts for installing shell tools, Helix, bat, and
+eza, configuring SSH and sudo, and stowing Bash and Fish configuration from
+Git submodules.
 
 ## Prerequisites
 
@@ -66,11 +66,12 @@ sudo bash setup.sh
 The script prompts for the user to configure, creates that account and its home
 directory if necessary, and then performs these steps:
 
-1. Installs sudo, Git, timezone data, tmux, Fish, GNU Stow, Helix, bat, eza,
-   and the OpenSSH server. Ubuntu uses the Helix PPA, Debian uses the `.deb`
-   from the latest Helix release, and other supported package managers use
-   their native Helix package. Debian and Ubuntu use eza's signed APT
-   repository. On Debian and Ubuntu, setup also installs and enables
+1. Installs sudo, Git, timezone data, tmux, curl, wget, ncdu, Fish, GNU Stow,
+   Helix, bat, eza, and the OpenSSH server. APT systems also receive nala.
+   Ubuntu uses the Helix PPA, Debian uses the `.deb` from the latest Helix
+   release, and other supported package managers use their native Helix
+   package. Debian and Ubuntu use eza's signed APT repository. On Debian and
+   Ubuntu, setup also installs and enables
    unattended-upgrades using a bundled distribution-specific APT
    configuration. On DNF-based systems, it enables DNF4 or DNF5 automatic
    updates and a daily 06:00 reboot-if-required timer. If a DNF distribution
