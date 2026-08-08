@@ -86,7 +86,7 @@ directory if necessary, and then performs these steps:
    including removal of packages that conflict with Docker Engine. Setup also
    copies the bundled Docker Compose helper scripts into the selected user's
    `~/docker` directory and configures root's crontab to run
-   `docker_cron.sh` daily at 04:00.
+   `docker_cron.sh` daily at 04:00 unless a similar job already exists.
 4. Sets the system timezone to `Europe/London`.
 5. Adds the configured user's SSH public key, then disables SSH root login and
    all non-public-key authentication.

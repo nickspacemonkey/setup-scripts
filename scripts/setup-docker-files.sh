@@ -82,12 +82,18 @@ configure_root_crontab() {
     local cron_command
 
     TEMP_FILE="$(mktemp)"
-    crontab -l 2>/dev/null |
-        awk -v marker="$CRON_MARKER" '
-            skip { skip = 0; next }
-            $0 == marker { skip = 1; next }
-            { print }
-        ' > "$TEMP_FILE" || true
+    crontab -l > "$TEMP_FILE" 2>/dev/null || true
+
+    if awk '
+        /^[[:space:]]*#/ { next }
+        /docker_cron\.sh([[:space:]]|$)/ { found = 1 }
+        END { exit !found }
+    ' "$TEMP_FILE"; then
+        echo "A root cron job for docker_cron.sh already exists; leaving it unchanged."
+        rm -f -- "$TEMP_FILE"
+        TEMP_FILE=""
+        return
+    fi
 
     printf -v cron_command '%q' "$TARGET_DIR/docker_cron.sh"
     printf '%s\n0 4 * * * bash %s >/dev/null 2>&1\n' \
