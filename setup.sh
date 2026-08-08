@@ -43,6 +43,19 @@ install_git() {
 
 bootstrap_repository() {
     local checkout="${SETUP_SCRIPTS_CHECKOUT:-$DEFAULT_CHECKOUT}"
+    local bootstrap_user
+
+    read -r -p "Enter the username to configure: " bootstrap_user
+
+    if [[ -z "$bootstrap_user" ]]; then
+        echo "ERROR: A username is required."
+        exit 1
+    fi
+
+    if [[ ! "$bootstrap_user" =~ ^[a-z_][a-z0-9_-]*[$]?$ ]]; then
+        echo "ERROR: '$bootstrap_user' is not a valid username."
+        exit 1
+    fi
 
     if ! install_git; then
         echo "ERROR: Failed to install Git."
@@ -64,7 +77,7 @@ bootstrap_repository() {
         fi
     fi
 
-    exec bash "$checkout/setup.sh" "$@"
+    exec bash "$checkout/setup.sh" "$bootstrap_user" "$@"
 }
 
 # A downloaded copy of setup.sh can bootstrap the complete repository.
@@ -72,7 +85,12 @@ if [[ ! -f "$INSTALL_SCRIPT" ]]; then
     bootstrap_repository "$@"
 fi
 
-read -r -p "Enter the username to configure: " TARGET_USER
+if (( $# > 0 )); then
+    TARGET_USER="$1"
+    shift
+else
+    read -r -p "Enter the username to configure: " TARGET_USER
+fi
 
 if [[ -z "$TARGET_USER" ]]; then
     echo "ERROR: A username is required."
