@@ -232,6 +232,7 @@ install_packages() {
             ncdu \
             fish \
             stow \
+            jq \
             bat \
             eza \
             openssh-server
@@ -274,9 +275,9 @@ install_packages() {
             dnf-automatic \
             dnf-plugins-core
 
-        if ! dnf install -y fish stow helix bat ncdu; then
+        if ! dnf install -y fish stow jq helix bat ncdu; then
             enable_dnf_extra_repositories
-            dnf install -y fish stow helix bat ncdu
+            dnf install -y fish stow jq helix bat ncdu
         fi
 
         if ! dnf install -y eza; then
@@ -298,6 +299,7 @@ install_packages() {
             tar \
             fish \
             stow \
+            jq \
             bat \
             eza \
             openssh \
@@ -315,6 +317,7 @@ install_packages() {
             tar \
             fish \
             stow \
+            jq \
             bat \
             eza \
             openssh-server \
@@ -332,6 +335,7 @@ install_packages() {
             tar \
             fish \
             stow \
+            jq \
             bat \
             eza \
             openssh-server \
@@ -363,11 +367,54 @@ install_claude() {
     sudo -u "$TARGET_USER" -H "$claude_binary" --version
 }
 
+configure_claude_for_ollama() {
+    local settings_dir settings_file settings_temp target_group
+
+    settings_dir="$TARGET_HOME/.claude"
+    settings_file="$settings_dir/settings.json"
+    settings_temp="$(mktemp)"
+    target_group="$(id -gn "$TARGET_USER")"
+
+    install -d -m 0700 -o "$TARGET_USER" -g "$target_group" "$settings_dir"
+
+    if [[ -f "$settings_file" ]]; then
+        if ! jq \
+            '.env = ((.env // {}) + {
+                "ANTHROPIC_AUTH_TOKEN": "ollama",
+                "ANTHROPIC_API_KEY": "",
+                "ANTHROPIC_BASE_URL": "http://192.168.0.2:11434",
+                "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "65536",
+                "OLLAMA_HOST": "http://192.168.0.2:11434"
+            })' \
+            "$settings_file" > "$settings_temp"; then
+            rm -f -- "$settings_temp"
+            echo "ERROR: Existing Claude settings are not valid JSON: $settings_file"
+            return 1
+        fi
+    else
+        jq -n '{
+            "env": {
+                "ANTHROPIC_AUTH_TOKEN": "ollama",
+                "ANTHROPIC_API_KEY": "",
+                "ANTHROPIC_BASE_URL": "http://192.168.0.2:11434",
+                "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "65536",
+                "OLLAMA_HOST": "http://192.168.0.2:11434"
+            }
+        }' > "$settings_temp"
+    fi
+
+    install -m 0600 -o "$TARGET_USER" -g "$target_group" \
+        "$settings_temp" "$settings_file"
+    rm -f -- "$settings_temp"
+    echo "Configured Claude to use Ollama at http://192.168.0.2:11434."
+}
+
 echo "Installing sudo, Git, timezone data, tmux, curl, wget, tar, ncdu, fish, stow, Helix, bat, eza, and OpenSSH server (plus nala on APT systems)..."
 install_packages
 
 if (( INSTALL_CLAUDE != 0 )); then
     install_claude
+    configure_claude_for_ollama
 fi
 
 echo
@@ -383,6 +430,7 @@ command -v tar >/dev/null && tar --version | sed -n '1p'
 command -v ncdu >/dev/null && ncdu --version | sed -n '1p'
 command -v fish >/dev/null && fish --version
 command -v stow >/dev/null && stow --version | head -n1
+command -v jq >/dev/null && jq --version
 command -v bat >/dev/null && bat --version
 command -v eza >/dev/null && eza --version | sed -n '1p'
 if command -v hx >/dev/null 2>&1; then
