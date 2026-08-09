@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if command -v ollama >/dev/null 2>&1; then
+    echo "Ollama is already installed."
+    ollama --version
+    exit 0
+fi
+
 if (( EUID != 0 )); then
     echo "ERROR: This script must be run as root."
     exit 1

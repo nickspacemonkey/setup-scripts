@@ -223,7 +223,11 @@ export TARGET_USER TARGET_HOME
 # Run install_tools.sh first
 if [[ -f "$INSTALL_SCRIPT" ]]; then
     echo "Running $INSTALL_SCRIPT..."
-    if ! bash "$INSTALL_SCRIPT"; then
+    INSTALL_TOOL_ARGS=()
+    if (( INSTALL_OLLAMA != 0 )); then
+        INSTALL_TOOL_ARGS+=("claude")
+    fi
+    if ! bash "$INSTALL_SCRIPT" "${INSTALL_TOOL_ARGS[@]}"; then
         echo "ERROR: $INSTALL_SCRIPT failed."
         exit 1
     fi

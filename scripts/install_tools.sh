@@ -12,6 +12,20 @@ AUTO_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/20auto-upgrades"
 DNF_AUTOMATIC_CONFIG="$SCRIPT_DIR/../config/dnf/automatic.conf"
 REBOOT_CHECK_SCRIPT="$SCRIPT_DIR/reboot-if-needed.sh"
 SYSTEMD_CONFIG_DIR="$SCRIPT_DIR/../config/systemd"
+INSTALL_CLAUDE=0
+
+while (( $# > 0 )); do
+    case "$1" in
+        claude)
+            INSTALL_CLAUDE=1
+            ;;
+        *)
+            echo "ERROR: Unexpected argument: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
 
 get_distro_id() {
     [[ -r /etc/os-release ]] || return
@@ -329,8 +343,32 @@ install_packages() {
     fi
 }
 
+install_claude() {
+    local claude_binary
+
+    if [[ -z "${TARGET_USER:-}" ]] || [[ -z "${TARGET_HOME:-}" ]]; then
+        echo "ERROR: TARGET_USER and TARGET_HOME are required to install Claude."
+        return 1
+    fi
+
+    claude_binary="$TARGET_HOME/.local/bin/claude"
+    if [[ -x "$claude_binary" ]]; then
+        echo "Claude is already installed for $TARGET_USER."
+        sudo -u "$TARGET_USER" -H "$claude_binary" --version
+        return
+    fi
+
+    echo "Installing Claude for $TARGET_USER..."
+    sudo -u "$TARGET_USER" -H bash -c 'curl -fsSL https://claude.ai/install.sh | bash'
+    sudo -u "$TARGET_USER" -H "$claude_binary" --version
+}
+
 echo "Installing sudo, Git, timezone data, tmux, curl, wget, tar, ncdu, fish, stow, Helix, bat, eza, and OpenSSH server (plus nala on APT systems)..."
 install_packages
+
+if (( INSTALL_CLAUDE != 0 )); then
+    install_claude
+fi
 
 echo
 echo "Installed versions:"
