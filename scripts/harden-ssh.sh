@@ -18,6 +18,29 @@ ensure_sshd_runtime_dir() {
     install -d -m 0755 -o root -g root /run/sshd
 }
 
+ensure_ssh_host_keys() {
+    local host_key
+
+    if ! command -v ssh-keygen >/dev/null 2>&1; then
+        echo "ERROR: ssh-keygen is required to generate SSH host keys."
+        return 1
+    fi
+
+    if ! ssh-keygen -A; then
+        echo "ERROR: Failed to generate missing SSH host keys."
+        return 1
+    fi
+
+    for host_key in /etc/ssh/ssh_host_*_key; do
+        if [[ -s "$host_key" ]]; then
+            return 0
+        fi
+    done
+
+    echo "ERROR: No SSH host keys were generated."
+    return 1
+}
+
 cleanup() {
     if [[ -n "$TEMP_CONFIG" ]]; then
         rm -f -- "$TEMP_CONFIG"
@@ -38,6 +61,8 @@ if [[ ! -f "$SSHD_CONFIG" ]]; then
     echo "ERROR: OpenSSH server configuration not found: $SSHD_CONFIG"
     exit 1
 fi
+
+ensure_ssh_host_keys
 
 if ! grep -Eq '^[[:space:]]*Include[[:space:]]+/etc/ssh/sshd_config\.d/\*\.conf([[:space:]]|$)' "$SSHD_CONFIG"; then
     echo "ERROR: $SSHD_CONFIG does not include $SSHD_CONFIG_DIR/*.conf."
