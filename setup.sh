@@ -28,6 +28,7 @@ SETUP_SCRIPTS=(
 REQUESTED_USER=""
 INSTALL_DOCKER=0
 INSTALL_OLLAMA=0
+ALPINE_USER_CREATED=0
 
 if (( $# > 0 )); then
     case "$1" in
@@ -193,6 +194,7 @@ if ! id "$TARGET_USER" >/dev/null 2>&1; then
         useradd --create-home --shell /bin/bash -- "$TARGET_USER"
     elif command -v adduser >/dev/null 2>&1; then
         adduser -D -s /bin/bash "$TARGET_USER"
+        ALPINE_USER_CREATED=1
     else
         echo "ERROR: Neither useradd nor adduser is available."
         exit 1
@@ -202,6 +204,16 @@ fi
 if ! id "$TARGET_USER" >/dev/null 2>&1; then
     echo "ERROR: Failed to create user '$TARGET_USER'."
     exit 1
+fi
+
+# Alpine's adduser -D leaves the account locked, which also prevents OpenSSH
+# public-key authentication on Alpine's non-PAM OpenSSH server. Unlock only an
+# account created by this run; SSH password authentication is disabled below.
+if (( ALPINE_USER_CREATED != 0 )); then
+    if ! passwd -u "$TARGET_USER"; then
+        echo "ERROR: Failed to unlock Alpine user '$TARGET_USER' for SSH public-key authentication."
+        exit 1
+    fi
 fi
 
 UID_MIN="$(awk '$1 == "UID_MIN" { print $2; exit }' /etc/login.defs 2>/dev/null || true)"
