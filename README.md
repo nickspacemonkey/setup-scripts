@@ -6,7 +6,7 @@ Git submodules.
 
 ## Prerequisites
 
-- Bash
+- Bash, installed automatically by the one-line bootstrap when necessary
 - `sudo` access
 - Git, when cloning the repository normally
 - One of the supported package managers: APT, DNF, Pacman, Zypper, or APK
@@ -24,13 +24,13 @@ and core utility packages to be installed before running the setup.
 From a root shell, run the one-line installation for user `nick`:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- nick docker
+wget -qO- https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/bootstrap.sh | sh -s -- nick docker
 ```
 
 From a root shell, the equivalent one-line installation with `curl` is:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh | bash -s -- nick docker
+curl -fsSL https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/bootstrap.sh | sh -s -- nick docker
 ```
 
 Or download it with `wget`:
