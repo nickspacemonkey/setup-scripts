@@ -15,7 +15,7 @@ BACKUP_CONFIG=""
 EFFECTIVE_CONFIG=""
 
 ensure_sshd_runtime_dir() {
-    sudo install -d -m 0755 -o root -g root /run/sshd
+    install -d -m 0755 -o root -g root /run/sshd
 }
 
 cleanup() {
@@ -29,7 +29,7 @@ cleanup() {
 
 trap cleanup EXIT
 
-if ! sudo test -s "$AUTHORIZED_KEYS"; then
+if ! test -s "$AUTHORIZED_KEYS"; then
     echo "ERROR: Refusing to disable SSH passwords before $AUTHORIZED_KEYS contains a key."
     exit 1
 fi
@@ -55,26 +55,26 @@ KbdInteractiveAuthentication no
 PermitEmptyPasswords no
 EOF
 
-sudo install -d -m 0755 "$SSHD_CONFIG_DIR"
+install -d -m 0755 "$SSHD_CONFIG_DIR"
 ensure_sshd_runtime_dir
 
-if sudo test -f "$HARDENING_CONFIG"; then
+if test -f "$HARDENING_CONFIG"; then
     BACKUP_CONFIG="$(mktemp)"
-    sudo cat "$HARDENING_CONFIG" > "$BACKUP_CONFIG"
+    cat "$HARDENING_CONFIG" > "$BACKUP_CONFIG"
 fi
 
-sudo install -m 0644 "$TEMP_CONFIG" "$HARDENING_CONFIG"
+install -m 0644 "$TEMP_CONFIG" "$HARDENING_CONFIG"
 
 restore_previous_config() {
     if [[ -n "$BACKUP_CONFIG" ]]; then
-        sudo install -m 0644 "$BACKUP_CONFIG" "$HARDENING_CONFIG"
+        install -m 0644 "$BACKUP_CONFIG" "$HARDENING_CONFIG"
     else
-        sudo rm -f -- "$HARDENING_CONFIG"
+        rm -f -- "$HARDENING_CONFIG"
     fi
 }
 
-if ! sudo sshd -t ||
-   ! EFFECTIVE_CONFIG="$(sudo sshd -T -C "user=$TARGET_USER,host=localhost,addr=127.0.0.1")"; then
+if ! sshd -t ||
+   ! EFFECTIVE_CONFIG="$(sshd -T -C "user=$TARGET_USER,host=localhost,addr=127.0.0.1")"; then
     restore_previous_config
     echo "ERROR: SSH configuration validation failed; the previous config was restored."
     exit 1
@@ -102,19 +102,19 @@ activate_ssh_service() {
     if command -v systemctl >/dev/null 2>&1; then
         local unit
         for unit in ssh.service sshd.service; do
-            if sudo systemctl cat "$unit" >/dev/null 2>&1; then
-                sudo systemctl enable "$unit" && sudo systemctl restart "$unit"
+            if systemctl cat "$unit" >/dev/null 2>&1; then
+                systemctl enable "$unit" && systemctl restart "$unit"
                 return
             fi
         done
     elif command -v rc-service >/dev/null 2>&1; then
-        sudo rc-update add sshd default && sudo rc-service sshd restart
+        rc-update add sshd default && rc-service sshd restart
         return
     elif command -v service >/dev/null 2>&1; then
-        if sudo service ssh restart; then
+        if service ssh restart; then
             return
         fi
-        sudo service sshd restart
+        service sshd restart
         return
     fi
 
@@ -124,7 +124,7 @@ activate_ssh_service() {
 if ! activate_ssh_service; then
     restore_previous_config
     ensure_sshd_runtime_dir
-    if sudo sshd -t; then
+    if sshd -t; then
         activate_ssh_service || true
     fi
     echo "ERROR: Could not activate SSH; the previous configuration was restored."
