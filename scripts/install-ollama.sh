@@ -11,6 +11,34 @@ configure_ollama_host() {
     echo "Configured Ollama clients to use http://192.168.0.2:11434."
 }
 
+install_ollama_alpine() {
+    local alpine_edge_community="https://dl-cdn.alpinelinux.org/alpine/edge/community"
+
+    echo "Installing Alpine's native Ollama package..."
+    if ! apk add --no-cache --repository="$alpine_edge_community" ollama; then
+        echo "ERROR: Alpine's native Ollama package is unavailable for this architecture."
+        return 1
+    fi
+
+    if [[ ! -x /usr/bin/ollama ]] || ! /usr/bin/ollama --version; then
+        echo "ERROR: Alpine's native Ollama package did not provide a working client."
+        return 1
+    fi
+
+    # The upstream installer leaves a glibc binary here. It cannot run on
+    # Alpine and shadows the native musl binary because /usr/local/bin is
+    # normally earlier in PATH.
+    if [[ -e /usr/local/bin/ollama ]] &&
+       ! /usr/local/bin/ollama --version >/dev/null 2>&1; then
+        rm -f -- /usr/local/bin/ollama
+    fi
+
+    hash -r
+    ollama --version
+    configure_ollama_host
+    echo "Ollama installation complete."
+}
+
 ensure_zstd() {
     if command -v zstd >/dev/null 2>&1; then
         echo "zstd is already installed."
@@ -42,6 +70,11 @@ ensure_zstd() {
 if (( EUID != 0 )); then
     echo "ERROR: This script must be run as root."
     exit 1
+fi
+
+if command -v apk >/dev/null 2>&1; then
+    install_ollama_alpine
+    exit 0
 fi
 
 ensure_zstd
