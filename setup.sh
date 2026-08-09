@@ -27,6 +27,7 @@ SETUP_SCRIPTS=(
 )
 REQUESTED_USER=""
 INSTALL_DOCKER=0
+INSTALL_OLLAMA=0
 
 if (( $# > 0 )); then
     case "$1" in
@@ -54,25 +55,34 @@ if (( $# > 0 )); then
     esac
 fi
 
-if (( $# > 0 )); then
-    if [[ "$1" == "docker" ]]; then
-        INSTALL_DOCKER=1
-        shift
-    else
-        echo "ERROR: Unexpected argument: $1"
-        exit 1
-    fi
-fi
-
-if (( $# > 0 )); then
-    echo "ERROR: Unexpected argument: $1"
-    exit 1
-fi
+while (( $# > 0 )); do
+    case "$1" in
+        docker)
+            INSTALL_DOCKER=1
+            shift
+            ;;
+        ollama)
+            INSTALL_OLLAMA=1
+            shift
+            ;;
+        *)
+            echo "ERROR: Unexpected argument: $1"
+            exit 1
+            ;;
+    esac
+done
 
 if (( INSTALL_DOCKER != 0 )); then
     SETUP_SCRIPTS=(
         "$HELPER_DIR/install-docker.sh"
         "$HELPER_DIR/setup-docker-files.sh"
+        "${SETUP_SCRIPTS[@]}"
+    )
+fi
+
+if (( INSTALL_OLLAMA != 0 )); then
+    SETUP_SCRIPTS=(
+        "$HELPER_DIR/install-ollama.sh"
         "${SETUP_SCRIPTS[@]}"
     )
 fi
@@ -147,11 +157,14 @@ bootstrap_repository() {
         fi
     fi
 
+    EXEC_ARGS=("$bootstrap_user")
     if (( INSTALL_DOCKER != 0 )); then
-        exec bash "$checkout/setup.sh" "$bootstrap_user" docker
-    else
-        exec bash "$checkout/setup.sh" "$bootstrap_user"
+        EXEC_ARGS+=("docker")
     fi
+    if (( INSTALL_OLLAMA != 0 )); then
+        EXEC_ARGS+=("ollama")
+    fi
+    exec bash "$checkout/setup.sh" "${EXEC_ARGS[@]}"
 }
 
 # A downloaded copy of setup.sh can bootstrap the complete repository.
