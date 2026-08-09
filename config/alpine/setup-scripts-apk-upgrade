@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+running_modules="/lib/modules/$(uname -r)"
+running_kernel_is_packaged=0
+
+if [ -d "$running_modules" ]; then
+    running_kernel_is_packaged=1
+fi
+
+apk --update-cache upgrade
+
+if [ "$running_kernel_is_packaged" -eq 1 ] && [ ! -d "$running_modules" ]; then
+    install -d -m 0755 /run
+    : > /run/setup-scripts-reboot-required
+    echo "The running Alpine kernel was replaced; a reboot is required."
+fi

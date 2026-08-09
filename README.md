@@ -14,6 +14,7 @@ Git submodules.
 - Core utilities: `install`, `find`, and `readlink`
 - `visudo`, normally provided with sudo
 - systemd on DNF-based systems, for automatic-update and reboot timers
+- OpenRC and BusyBox cron on Alpine, for automatic updates and reboots
 
 Minimal distributions and container images may require their account-management
 and core utility packages to be installed before running the setup.
@@ -74,7 +75,9 @@ directory if necessary, and then performs these steps:
    installs and enables
    unattended-upgrades using a bundled distribution-specific APT
    configuration. On DNF-based systems, it enables DNF4 or DNF5 automatic
-   updates and a daily 06:00 reboot-if-required timer. If a DNF distribution
+   updates and a daily 06:00 reboot-if-required timer. Alpine installs updates
+   daily at 02:00 using root cron jobs and reboots at 06:00 when an update
+   replaced the running kernel. If a DNF distribution
    does not provide a requested tool in its enabled native repositories, setup
    attempts to enable CRB/PowerTools and EPEL, then retries. If eza remains
    unavailable, setup installs its official release binary on x86-64 or ARM64.
@@ -124,7 +127,8 @@ The setup automatically:
 - Configures SSH to deny root login and require public-key authentication,
   then validates and reloads the SSH server configuration.
 - Installs updates automatically and permits an unattended reboot at 06:00
-  when APT or DNF reports that one is required, even with users logged in.
+  when APT or DNF reports that one is required, or when Alpine replaces the
+  running kernel, even with users logged in.
 - Grants the selected user unrestricted passwordless sudo through a validated
   file in `/etc/sudoers.d`.
 - Runs the Docker maintenance helper as root every day at 04:00 when Docker

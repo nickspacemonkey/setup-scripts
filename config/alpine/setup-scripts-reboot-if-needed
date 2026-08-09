@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+reboot_marker=/run/setup-scripts-reboot-required
+
+if [ ! -f "$reboot_marker" ]; then
+    echo "Alpine reports that no reboot is required."
+    exit 0
+fi
+
+echo "An Alpine kernel update requires a reboot; rebooting now."
+sync
+reboot

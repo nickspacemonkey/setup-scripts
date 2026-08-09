@@ -8,6 +8,7 @@ fi
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 APT_CONFIG_DIR="$SCRIPT_DIR/../config/apt"
+ALPINE_CONFIG_DIR="$SCRIPT_DIR/../config/alpine"
 AUTO_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/20auto-upgrades"
 DNF_AUTOMATIC_CONFIG="$SCRIPT_DIR/../config/dnf/automatic.conf"
 REBOOT_CHECK_SCRIPT="$SCRIPT_DIR/reboot-if-needed.sh"
@@ -210,6 +211,37 @@ configure_dnf_automatic() {
     systemctl enable --now setup-scripts-reboot-if-needed.timer
 }
 
+configure_alpine_automatic() {
+    local root_crontab=/etc/crontabs/root
+
+    if [[ ! -f "$ALPINE_CONFIG_DIR/setup-scripts-apk-upgrade" ]] ||
+       [[ ! -f "$ALPINE_CONFIG_DIR/setup-scripts-reboot-if-needed" ]]; then
+        echo "ERROR: Bundled Alpine automatic-update configuration is incomplete."
+        exit 1
+    fi
+
+    install -d -m 0755 /usr/local/sbin /etc/crontabs
+    install -m 0755 \
+        "$ALPINE_CONFIG_DIR/setup-scripts-apk-upgrade" \
+        /usr/local/sbin/setup-scripts-apk-upgrade
+    install -m 0755 \
+        "$ALPINE_CONFIG_DIR/setup-scripts-reboot-if-needed" \
+        /usr/local/sbin/setup-scripts-reboot-if-needed
+
+    touch "$root_crontab"
+    if ! grep -Fq '# setup-scripts Alpine automatic updates' "$root_crontab"; then
+        printf '%s\n' \
+            '# setup-scripts Alpine automatic updates' \
+            '0 2 * * * /usr/local/sbin/setup-scripts-apk-upgrade' \
+            '0 6 * * * /usr/local/sbin/setup-scripts-reboot-if-needed' \
+            >> "$root_crontab"
+    fi
+    chmod 0600 "$root_crontab"
+
+    rc-update add crond default
+    rc-service crond start
+}
+
 install_packages() {
     local distro_id unattended_upgrades_config
 
@@ -340,6 +372,8 @@ install_packages() {
             eza \
             openssh-server \
             helix
+
+        configure_alpine_automatic
 
     else
         echo "ERROR: Unsupported package manager."
