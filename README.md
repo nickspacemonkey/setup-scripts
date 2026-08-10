@@ -54,8 +54,7 @@ and start Docker Engine with Buildx and Compose:
 sudo bash setup.sh nick docker
 ```
 
-The normal setup installs Claude Code for the selected user after the system
-tools. To run the full setup without Ollama and configure Claude's Anthropic
+To install Claude Code after the system tools and configure its Anthropic
 environment settings without `OLLAMA_HOST`, pass `claude`:
 
 ```bash
