@@ -13,18 +13,15 @@ AUTO_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/20auto-upgrades"
 DNF_AUTOMATIC_CONFIG="$SCRIPT_DIR/../config/dnf/automatic.conf"
 REBOOT_CHECK_SCRIPT="$SCRIPT_DIR/reboot-if-needed.sh"
 SYSTEMD_CONFIG_DIR="$SCRIPT_DIR/../config/systemd"
-INSTALL_CLAUDE=0
 CONFIGURE_CLAUDE_FOR_OLLAMA=0
 CLAUDE_ONLY=0
 
 while (( $# > 0 )); do
     case "$1" in
         claude)
-            INSTALL_CLAUDE=1
             CLAUDE_ONLY=1
             ;;
         claude-ollama)
-            INSTALL_CLAUDE=1
             CONFIGURE_CLAUDE_FOR_OLLAMA=1
             ;;
         *)
@@ -457,10 +454,7 @@ fi
 
 echo "Installing sudo, Git, timezone data, tmux, curl, wget, tar, ncdu, fish, stow, Helix, bat, eza, and OpenSSH server (plus nala on APT systems)..."
 install_packages
-
-if (( INSTALL_CLAUDE != 0 )); then
-    install_claude
-fi
+install_claude
 
 if (( CONFIGURE_CLAUDE_FOR_OLLAMA != 0 )); then
     configure_claude_for_ollama

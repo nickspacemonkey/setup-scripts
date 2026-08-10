@@ -54,14 +54,15 @@ and start Docker Engine with Buildx and Compose:
 sudo bash setup.sh nick docker
 ```
 
-To install only Claude Code for the selected user, pass `claude` instead:
+The normal setup installs Claude Code for the selected user after the system
+tools. To install only Claude Code, pass `claude` instead:
 
 ```bash
 sudo bash setup.sh nick claude
 ```
 
-The `ollama` argument retains the full setup behavior and also installs Claude
-Code configured to use Ollama.
+The `ollama` argument retains the full setup behavior and configures Claude Code
+to use Ollama.
 
 Set `SETUP_SCRIPTS_CHECKOUT` to use a different checkout location.
 
