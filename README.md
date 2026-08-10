@@ -55,15 +55,20 @@ sudo bash setup.sh nick docker
 ```
 
 The normal setup installs Claude Code for the selected user after the system
-tools. To install only Claude Code and configure its Anthropic environment
-settings without `OLLAMA_HOST`, pass `claude` instead:
+tools. To run the full setup without Ollama and configure Claude's Anthropic
+environment settings without `OLLAMA_HOST`, pass `claude`:
 
 ```bash
 sudo bash setup.sh nick claude
 ```
 
 The `ollama` argument retains the full setup behavior and configures Claude Code
-to use Ollama.
+to use Ollama. It can be combined explicitly with `claude`; Ollama configuration
+takes precedence and includes `OLLAMA_HOST`:
+
+```bash
+sudo bash setup.sh nick ollama claude
+```
 
 Set `SETUP_SCRIPTS_CHECKOUT` to use a different checkout location.
 

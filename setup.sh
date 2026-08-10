@@ -28,7 +28,7 @@ SETUP_SCRIPTS=(
 REQUESTED_USER=""
 INSTALL_DOCKER=0
 INSTALL_OLLAMA=0
-INSTALL_CLAUDE_ONLY=0
+INSTALL_CLAUDE=0
 ALPINE_USER_CREATED=0
 
 if (( $# > 0 )); then
@@ -68,7 +68,7 @@ while (( $# > 0 )); do
             shift
             ;;
         claude)
-            INSTALL_CLAUDE_ONLY=1
+            INSTALL_CLAUDE=1
             shift
             ;;
         *)
@@ -170,7 +170,7 @@ bootstrap_repository() {
     if (( INSTALL_OLLAMA != 0 )); then
         EXEC_ARGS+=("ollama")
     fi
-    if (( INSTALL_CLAUDE_ONLY != 0 )); then
+    if (( INSTALL_CLAUDE != 0 )); then
         EXEC_ARGS+=("claude")
     fi
     exec bash "$checkout/setup.sh" "${EXEC_ARGS[@]}"
@@ -244,10 +244,10 @@ export TARGET_USER TARGET_HOME
 if [[ -f "$INSTALL_SCRIPT" ]]; then
     echo "Running $INSTALL_SCRIPT..."
     INSTALL_TOOL_ARGS=()
-    if (( INSTALL_CLAUDE_ONLY != 0 )); then
-        INSTALL_TOOL_ARGS+=("claude")
-    elif (( INSTALL_OLLAMA != 0 )); then
+    if (( INSTALL_OLLAMA != 0 )); then
         INSTALL_TOOL_ARGS+=("claude-ollama")
+    elif (( INSTALL_CLAUDE != 0 )); then
+        INSTALL_TOOL_ARGS+=("claude")
     fi
     if ! bash "$INSTALL_SCRIPT" "${INSTALL_TOOL_ARGS[@]}"; then
         echo "ERROR: $INSTALL_SCRIPT failed."
@@ -256,10 +256,6 @@ if [[ -f "$INSTALL_SCRIPT" ]]; then
 else
     echo "ERROR: $INSTALL_SCRIPT not found."
     exit 1
-fi
-
-if (( INSTALL_CLAUDE_ONLY != 0 )); then
-    exit 0
 fi
 
 # Initialize bundled configuration repositories after installing required tools

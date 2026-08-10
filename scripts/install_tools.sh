@@ -473,17 +473,13 @@ configure_claude_settings() {
     fi
 }
 
-if (( CLAUDE_ONLY != 0 )); then
-    install_claude
-    configure_claude_settings 0
-    exit 0
-fi
-
 echo "Installing sudo, Git, timezone data, tmux, curl, wget, tar, ncdu, fish, stow, Helix, bat, eza, and OpenSSH server (plus nala on APT systems)..."
 install_packages
 install_claude
 
-if (( CONFIGURE_CLAUDE_FOR_OLLAMA != 0 )); then
+if (( CLAUDE_ONLY != 0 )); then
+    configure_claude_settings 0
+elif (( CONFIGURE_CLAUDE_FOR_OLLAMA != 0 )); then
     configure_claude_settings 1
 fi
 
