@@ -14,7 +14,8 @@ Git submodules.
 - Core utilities: `install`, `find`, and `readlink`
 - `visudo`, normally provided with sudo
 - systemd on DNF-based systems, for automatic-update and reboot timers
-- OpenRC and BusyBox cron on Alpine, for automatic updates and reboots
+- An OpenRC-based Alpine system, for automatic updates and reboots; the setup
+  installs OpenRC and cron packages when they are missing
 
 Minimal distributions and container images may require their account-management
 and core utility packages to be installed before running the setup.

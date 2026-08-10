@@ -69,8 +69,8 @@ start_cron() {
             fi
         done
     elif command -v rc-service >/dev/null 2>&1; then
-        rc-update add crond default
-        rc-service crond start
+        rc-update add dcron default
+        rc-service dcron start
         return
     fi
 

@@ -245,8 +245,8 @@ configure_alpine_automatic() {
     fi
     chmod 0600 "$root_crontab"
 
-    rc-update add crond default
-    rc-service crond start
+    rc-update add dcron default
+    rc-service dcron start
 }
 
 install_packages() {
@@ -364,6 +364,8 @@ install_packages() {
 
     elif command -v apk >/dev/null 2>&1; then
         apk add \
+            openrc \
+            dcron \
             sudo \
             git \
             tzdata \
