@@ -124,6 +124,21 @@ done
 activate_ssh_service() {
     ensure_sshd_runtime_dir
 
+    # Prefer OpenRC when it is available. Some Alpine installations may also
+    # have a systemctl compatibility command, but that does not manage OpenRC
+    # runlevels and therefore cannot enable sshd at boot.
+    if command -v rc-update >/dev/null 2>&1 &&
+       command -v rc-service >/dev/null 2>&1; then
+        rc-update add sshd default || return 1
+
+        if rc-service sshd status >/dev/null 2>&1; then
+            rc-service sshd restart
+        else
+            rc-service sshd start
+        fi
+        return
+    fi
+
     if command -v systemctl >/dev/null 2>&1; then
         local unit
         for unit in ssh.service sshd.service; do
@@ -132,10 +147,9 @@ activate_ssh_service() {
                 return
             fi
         done
-    elif command -v rc-service >/dev/null 2>&1; then
-        rc-update add sshd default && rc-service sshd restart
-        return
-    elif command -v service >/dev/null 2>&1; then
+    fi
+
+    if command -v service >/dev/null 2>&1; then
         if service ssh restart; then
             return
         fi
