@@ -302,7 +302,10 @@ install_packages() {
         fi
 
     elif command -v dnf >/dev/null 2>&1; then
-        dnf install -y \
+        # Minimal RHEL-family images ship curl-minimal, which conflicts with
+        # the full curl package requested below. Allow DNF to replace minimal
+        # package variants as part of this transaction.
+        dnf install -y --allowerasing \
             sudo \
             git \
             tzdata \
