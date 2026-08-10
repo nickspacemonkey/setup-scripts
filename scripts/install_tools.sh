@@ -385,6 +385,29 @@ install_packages() {
     fi
 }
 
+install_claude_prerequisites() {
+    if command -v sudo >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
+        return
+    fi
+
+    echo "Installing Claude prerequisites..."
+    if command -v apt-get >/dev/null 2>&1; then
+        apt-get update
+        apt-get install -y sudo curl ca-certificates
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y sudo curl ca-certificates
+    elif command -v pacman >/dev/null 2>&1; then
+        pacman -S --needed --noconfirm sudo curl ca-certificates
+    elif command -v zypper >/dev/null 2>&1; then
+        zypper --non-interactive install sudo curl ca-certificates
+    elif command -v apk >/dev/null 2>&1; then
+        apk add sudo curl ca-certificates
+    else
+        echo "ERROR: Cannot install Claude prerequisites: unsupported package manager."
+        return 1
+    fi
+}
+
 install_claude() {
     local claude_binary
 
@@ -392,6 +415,8 @@ install_claude() {
         echo "ERROR: TARGET_USER and TARGET_HOME are required to install Claude."
         return 1
     fi
+
+    install_claude_prerequisites
 
     claude_binary="$TARGET_HOME/.local/bin/claude"
     if [[ -x "$claude_binary" ]]; then
