@@ -430,50 +430,52 @@ install_claude() {
     sudo -u "$TARGET_USER" -H "$claude_binary" --version
 }
 
-configure_claude_for_ollama() {
-    local settings_dir settings_file settings_temp target_group
+configure_claude_settings() {
+    local include_ollama_host="${1:-0}"
+    local settings_dir settings_file settings_temp target_group settings_filter
 
     settings_dir="$TARGET_HOME/.claude"
     settings_file="$settings_dir/settings.json"
     settings_temp="$(mktemp)"
     target_group="$(id -gn "$TARGET_USER")"
+    settings_filter='.env = ((.env // {}) + {
+        "ANTHROPIC_AUTH_TOKEN": "ollama",
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_BASE_URL": "http://192.168.0.2:11434",
+        "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "65536"
+    })'
+
+    if (( include_ollama_host != 0 )); then
+        settings_filter+=' | .env.OLLAMA_HOST = "http://192.168.0.2:11434"'
+    else
+        settings_filter+=' | del(.env.OLLAMA_HOST)'
+    fi
 
     install -d -m 0700 -o "$TARGET_USER" -g "$target_group" "$settings_dir"
 
     if [[ -f "$settings_file" ]]; then
-        if ! jq \
-            '.env = ((.env // {}) + {
-                "ANTHROPIC_AUTH_TOKEN": "ollama",
-                "ANTHROPIC_API_KEY": "",
-                "ANTHROPIC_BASE_URL": "http://192.168.0.2:11434",
-                "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "65536",
-                "OLLAMA_HOST": "http://192.168.0.2:11434"
-            })' \
-            "$settings_file" > "$settings_temp"; then
+        if ! jq "$settings_filter" "$settings_file" > "$settings_temp"; then
             rm -f -- "$settings_temp"
             echo "ERROR: Existing Claude settings are not valid JSON: $settings_file"
             return 1
         fi
     else
-        jq -n '{
-            "env": {
-                "ANTHROPIC_AUTH_TOKEN": "ollama",
-                "ANTHROPIC_API_KEY": "",
-                "ANTHROPIC_BASE_URL": "http://192.168.0.2:11434",
-                "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "65536",
-                "OLLAMA_HOST": "http://192.168.0.2:11434"
-            }
-        }' > "$settings_temp"
+        jq -n "$settings_filter" > "$settings_temp"
     fi
 
     install -m 0600 -o "$TARGET_USER" -g "$target_group" \
         "$settings_temp" "$settings_file"
     rm -f -- "$settings_temp"
-    echo "Configured Claude to use Ollama at http://192.168.0.2:11434."
+    if (( include_ollama_host != 0 )); then
+        echo "Configured Claude to use Ollama at http://192.168.0.2:11434."
+    else
+        echo "Configured Claude Anthropic environment settings without OLLAMA_HOST."
+    fi
 }
 
 if (( CLAUDE_ONLY != 0 )); then
     install_claude
+    configure_claude_settings 0
     exit 0
 fi
 
@@ -482,7 +484,7 @@ install_packages
 install_claude
 
 if (( CONFIGURE_CLAUDE_FOR_OLLAMA != 0 )); then
-    configure_claude_for_ollama
+    configure_claude_settings 1
 fi
 
 echo

@@ -55,7 +55,8 @@ sudo bash setup.sh nick docker
 ```
 
 The normal setup installs Claude Code for the selected user after the system
-tools. To install only Claude Code, pass `claude` instead:
+tools. To install only Claude Code and configure its Anthropic environment
+settings without `OLLAMA_HOST`, pass `claude` instead:
 
 ```bash
 sudo bash setup.sh nick claude
