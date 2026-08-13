@@ -13,6 +13,7 @@ AUTO_UPGRADES_CONFIG="$SCRIPT_DIR/../config/apt/20auto-upgrades"
 DNF_AUTOMATIC_CONFIG="$SCRIPT_DIR/../config/dnf/automatic.conf"
 REBOOT_CHECK_SCRIPT="$SCRIPT_DIR/reboot-if-needed.sh"
 SYSTEMD_CONFIG_DIR="$SCRIPT_DIR/../config/systemd"
+CLAUDE_STATUSLINE_SCRIPT="$SCRIPT_DIR/../config/claude/statusline.sh"
 INSTALL_CLAUDE=0
 CONFIGURE_CLAUDE_FOR_OLLAMA=0
 CLAUDE_ONLY=0
@@ -439,24 +440,44 @@ install_claude() {
 }
 
 configure_claude_settings() {
-    local include_ollama_host="${1:-0}"
+    local include_ollama_settings="${1:-0}"
     local settings_dir settings_file settings_temp target_group settings_filter
 
     settings_dir="$TARGET_HOME/.claude"
     settings_file="$settings_dir/settings.json"
     settings_temp="$(mktemp)"
     target_group="$(id -gn "$TARGET_USER")"
-    settings_filter='.env = ((.env // {}) + {
-        "ANTHROPIC_AUTH_TOKEN": "ollama",
-        "ANTHROPIC_API_KEY": "",
-        "ANTHROPIC_BASE_URL": "http://192.168.0.2:11434",
-        "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "65536"
-    })'
+    settings_filter='
+        .env = ((.env // {}) + {
+            "API_TIMEOUT_MS": "1800000",
+            "API_FORCE_IDLE_TIMEOUT": "0",
+            "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
+            "CLAUDE_BYTE_STREAM_IDLE_TIMEOUT_MS": "1800000",
+            "BASH_DEFAULT_TIMEOUT_MS": "3600000",
+            "BASH_MAX_TIMEOUT_MS": "86400000",
+            "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "131072",
+            "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "65536",
+            "CLAUDE_CODE_SUBAGENT_MODEL": "qwen3.6-128k",
+            "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "1",
+            "MAX_THINKING_TOKENS": "0"
+        })
+        | .permissions = ((.permissions // {}) |
+            .deny = ((.deny // []) |
+                if index("Agent") == null then . + ["Agent"] else . end))
+        | .statusLine = {
+            "type": "command",
+            "command": "~/.claude/statusline.sh"
+        }
+        | .theme = "dark"
+    '
 
-    if (( include_ollama_host != 0 )); then
-        settings_filter+=' | .env.OLLAMA_HOST = "http://192.168.0.2:11434"'
-    else
-        settings_filter+=' | del(.env.OLLAMA_HOST)'
+    if (( include_ollama_settings != 0 )); then
+        settings_filter+=' | .env += {
+            "ANTHROPIC_AUTH_TOKEN": "ollama",
+            "ANTHROPIC_API_KEY": "",
+            "ANTHROPIC_BASE_URL": "http://192.168.0.2:11434",
+            "OLLAMA_HOST": "http://192.168.0.2:11434"
+        }'
     fi
 
     install -d -m 0700 -o "$TARGET_USER" -g "$target_group" "$settings_dir"
@@ -473,11 +494,13 @@ configure_claude_settings() {
 
     install -m 0600 -o "$TARGET_USER" -g "$target_group" \
         "$settings_temp" "$settings_file"
+    install -m 0755 -o "$TARGET_USER" -g "$target_group" \
+        "$CLAUDE_STATUSLINE_SCRIPT" "$settings_dir/statusline.sh"
     rm -f -- "$settings_temp"
-    if (( include_ollama_host != 0 )); then
+    if (( include_ollama_settings != 0 )); then
         echo "Configured Claude to use Ollama at http://192.168.0.2:11434."
     else
-        echo "Configured Claude Anthropic environment settings without OLLAMA_HOST."
+        echo "Configured Claude settings without changing existing provider settings."
     fi
 }
 
