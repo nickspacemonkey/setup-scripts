@@ -55,18 +55,15 @@ and start Docker Engine with Buildx and Compose:
 sudo bash setup.sh nick docker
 ```
 
-To install Claude Code after the system tools and configure its common timeout,
-token limit, permissions, theme, and status-line settings, pass `claude`.
-This mode does not add, change, or remove Ollama provider settings:
+To install Claude Code after the system tools and apply the repository's
+version-controlled settings, pass `claude`:
 
 ```bash
 sudo bash setup.sh nick claude
 ```
 
-The `ollama` argument retains the full setup behavior and configures Claude Code
-to use Ollama by adding the Anthropic-compatible endpoint, credentials, and
-`OLLAMA_HOST`. It can be combined explicitly with `claude`; Ollama configuration
-takes precedence:
+The `ollama` argument retains the full setup behavior and can be combined
+explicitly with `claude`:
 
 ```bash
 sudo bash setup.sh nick ollama claude

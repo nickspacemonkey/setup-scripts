@@ -14,7 +14,7 @@ REMAINING=$(jq -r '.context_window.remaining_percentage // 100 | floor' <<< "$in
 
 # Optional manual context-size override.
 # Example: export CLAUDE_CONTEXT_MAX=131072
-export CLAUDE_CONTEXT_MAX=131072
+export CLAUDE_CONTEXT_MAX=196608
 if [[ -n "${CLAUDE_CONTEXT_MAX:-}" ]]; then
     MAX="$CLAUDE_CONTEXT_MAX"
 

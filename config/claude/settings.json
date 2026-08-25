@@ -1,0 +1,39 @@
+{
+  "env": {
+    "API_TIMEOUT_MS": "1800000",
+    "API_FORCE_IDLE_TIMEOUT": "0",
+    "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
+    "CLAUDE_BYTE_STREAM_IDLE_TIMEOUT_MS": "1800000",
+    "BASH_DEFAULT_TIMEOUT_MS": "3600000",
+    "BASH_MAX_TIMEOUT_MS": "86400000",
+    "ANTHROPIC_AUTH_TOKEN": "ollama",
+    "ANTHROPIC_API_KEY": "",
+    "ANTHROPIC_BASE_URL": "http://192.168.0.2:11434",
+    "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "196608",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "65536",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "qwen3.8-192k",
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "1",
+    "CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS": "1",
+    "MAX_THINKING_TOKENS": "0",
+    "OLLAMA_HOST": "http://192.168.0.2:11434"
+  },
+  "permissions": {
+    "deny": [
+      "Agent"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "enableWorkflows": false,
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
+  },
+  "effortLevel": "high",
+  "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "theme": "dark",
+  "verbose": true
+}
