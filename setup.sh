@@ -274,6 +274,10 @@ for script in "${SETUP_SCRIPTS[@]}"; do
 
     echo "Running $script..."
     if ! bash "$script"; then
+        if [[ "$script" == "$HELPER_DIR/harden-ssh.sh" ]]; then
+            echo "WARNING: $script failed; continuing without SSH hardening."
+            continue
+        fi
         echo "ERROR: $script failed."
         exit 1
     fi

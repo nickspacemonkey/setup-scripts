@@ -19,6 +19,11 @@ if ! command -v sshd >/dev/null 2>&1; then
     exit 0
 fi
 
+if [[ ! -f "$SSHD_CONFIG" ]]; then
+    echo "WARNING: OpenSSH server configuration not found: $SSHD_CONFIG; skipping SSH hardening."
+    exit 0
+fi
+
 ensure_sshd_runtime_dir() {
     install -d -m 0755 -o root -g root /run/sshd
 }
@@ -60,11 +65,6 @@ trap cleanup EXIT
 if ! test -s "$AUTHORIZED_KEYS"; then
     echo "ERROR: Refusing to disable SSH passwords before $AUTHORIZED_KEYS contains a key."
     exit 1
-fi
-
-if [[ ! -f "$SSHD_CONFIG" ]]; then
-    echo "WARNING: OpenSSH server configuration not found: $SSHD_CONFIG; skipping SSH hardening."
-    exit 0
 fi
 
 ensure_ssh_host_keys
