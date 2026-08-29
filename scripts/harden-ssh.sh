@@ -63,8 +63,8 @@ if ! test -s "$AUTHORIZED_KEYS"; then
 fi
 
 if [[ ! -f "$SSHD_CONFIG" ]]; then
-    echo "ERROR: OpenSSH server configuration not found: $SSHD_CONFIG"
-    exit 1
+    echo "WARNING: OpenSSH server configuration not found: $SSHD_CONFIG; skipping SSH hardening."
+    exit 0
 fi
 
 ensure_ssh_host_keys
