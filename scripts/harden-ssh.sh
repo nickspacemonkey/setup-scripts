@@ -17,6 +17,7 @@ AUTHORIZED_KEYS="$TARGET_HOME/.ssh/authorized_keys"
 TEMP_CONFIG=""
 BACKUP_CONFIG=""
 EFFECTIVE_CONFIG=""
+ROOT_EFFECTIVE_CONFIG=""
 
 if ! command -v sshd >/dev/null 2>&1; then
     echo "WARNING: OpenSSH server is not installed; skipping SSH hardening."
@@ -114,15 +115,22 @@ restore_previous_config() {
     fi
 }
 
-if ! sshd -t ||
-   ! EFFECTIVE_CONFIG="$(sshd -T -C "user=$TARGET_USER,host=localhost,addr=127.0.0.1")"; then
+if ! sshd -t -f "$SSHD_CONFIG" ||
+   ! ROOT_EFFECTIVE_CONFIG="$(sshd -T -f "$SSHD_CONFIG" -C "user=root,host=localhost,addr=127.0.0.1")" ||
+   ! EFFECTIVE_CONFIG="$(sshd -T -f "$SSHD_CONFIG" -C "user=$TARGET_USER,host=localhost,addr=127.0.0.1")"; then
     restore_previous_config
     echo "ERROR: SSH configuration validation failed; the previous config was restored."
     exit 1
 fi
 
+if ! grep -Fqx "permitrootlogin no" <<< "$ROOT_EFFECTIVE_CONFIG"; then
+    actual_root_setting="$(awk '$1 == "permitrootlogin" { print; exit }' <<< "$ROOT_EFFECTIVE_CONFIG")"
+    restore_previous_config
+    echo "ERROR: Effective SSH setting for root is '${actual_root_setting:-missing}', not 'permitrootlogin no'; the previous config was restored."
+    exit 1
+fi
+
 REQUIRED_SETTINGS=(
-    "permitrootlogin no"
     "pubkeyauthentication yes"
     "authenticationmethods publickey"
     "passwordauthentication no"
@@ -179,7 +187,7 @@ activate_ssh_service() {
 if ! activate_ssh_service; then
     restore_previous_config
     ensure_sshd_runtime_dir
-    if sshd -t; then
+    if sshd -t -f "$SSHD_CONFIG"; then
         activate_ssh_service || true
     fi
     echo "ERROR: Could not activate SSH; the previous configuration was restored."
