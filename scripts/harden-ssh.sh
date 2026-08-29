@@ -123,8 +123,8 @@ if ! sshd -t -f "$SSHD_CONFIG" ||
     exit 1
 fi
 
-if ! grep -Fqx "permitrootlogin no" <<< "$ROOT_EFFECTIVE_CONFIG"; then
-    actual_root_setting="$(awk '$1 == "permitrootlogin" { print; exit }' <<< "$ROOT_EFFECTIVE_CONFIG")"
+if ! grep -Fqix "permitrootlogin no" <<< "$ROOT_EFFECTIVE_CONFIG"; then
+    actual_root_setting="$(grep -im1 -E '^permitrootlogin[[:space:]]+' <<< "$ROOT_EFFECTIVE_CONFIG" || true)"
     restore_previous_config
     echo "ERROR: Effective SSH setting for root is '${actual_root_setting:-missing}', not 'permitrootlogin no'; the previous config was restored."
     exit 1
@@ -138,7 +138,7 @@ REQUIRED_SETTINGS=(
 )
 
 for setting in "${REQUIRED_SETTINGS[@]}"; do
-    if ! grep -Fqx "$setting" <<< "$EFFECTIVE_CONFIG"; then
+    if ! grep -Fqix "$setting" <<< "$EFFECTIVE_CONFIG"; then
         restore_previous_config
         echo "ERROR: Effective SSH setting is not '$setting'; the previous config was restored."
         exit 1
