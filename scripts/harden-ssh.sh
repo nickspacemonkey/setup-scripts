@@ -14,6 +14,11 @@ TEMP_CONFIG=""
 BACKUP_CONFIG=""
 EFFECTIVE_CONFIG=""
 
+if ! command -v sshd >/dev/null 2>&1; then
+    echo "WARNING: OpenSSH server is not installed; skipping SSH hardening."
+    exit 0
+fi
+
 ensure_sshd_runtime_dir() {
     install -d -m 0755 -o root -g root /run/sshd
 }
