@@ -146,9 +146,10 @@ The setup automatically:
   running kernel, even with users logged in.
 - Grants the selected user unrestricted passwordless sudo through a validated
   file in `/etc/sudoers.d`.
-- On a running KDE Plasma desktop, grants members of the `wheel` group
-  unrestricted passwordless polkit authorization through
-  `/etc/polkit-1/rules.d/49-nopasswd_global.rules`.
+- On a running KDE Plasma or GNOME desktop, grants the system administrator
+  group unrestricted passwordless polkit authorization through
+  `/etc/polkit-1/rules.d/49-nopasswd_global.rules`. Debian-family systems use
+  the `sudo` group; other distributions use `wheel`.
 - Runs the Docker maintenance helper as root every day at 04:00 when Docker
   installation is requested. The helper updates Compose projects and prunes
   unused Docker images, containers, networks, and volumes.
