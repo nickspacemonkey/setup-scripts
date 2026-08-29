@@ -6,7 +6,11 @@ if [[ -z "${TARGET_USER:-}" ]] || [[ -z "${TARGET_HOME:-}" ]]; then
     exit 1
 fi
 
-SSHD_CONFIG="/etc/ssh/sshd_config"
+SSHD_CONFIG=""
+SSHD_CONFIG_CANDIDATES=(
+    "/etc/ssh/sshd_config"
+    "/usr/etc/ssh/sshd_config"
+)
 SSHD_CONFIG_DIR="/etc/ssh/sshd_config.d"
 HARDENING_CONFIG="$SSHD_CONFIG_DIR/00-setup-scripts-hardening.conf"
 AUTHORIZED_KEYS="$TARGET_HOME/.ssh/authorized_keys"
@@ -19,8 +23,15 @@ if ! command -v sshd >/dev/null 2>&1; then
     exit 0
 fi
 
-if [[ ! -f "$SSHD_CONFIG" ]]; then
-    echo "WARNING: OpenSSH server configuration not found: $SSHD_CONFIG; skipping SSH hardening."
+for config_candidate in "${SSHD_CONFIG_CANDIDATES[@]}"; do
+    if [[ -f "$config_candidate" ]]; then
+        SSHD_CONFIG="$config_candidate"
+        break
+    fi
+done
+
+if [[ -z "$SSHD_CONFIG" ]]; then
+    echo "WARNING: OpenSSH server configuration not found at /etc/ssh/sshd_config or /usr/etc/ssh/sshd_config; skipping SSH hardening."
     exit 0
 fi
 
