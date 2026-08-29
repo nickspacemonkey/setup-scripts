@@ -23,6 +23,7 @@ SETUP_SCRIPTS=(
     "$HELPER_DIR/setup-authorized-keys.sh"
     "$HELPER_DIR/harden-ssh.sh"
     "$HELPER_DIR/setup-passwordless-sudo.sh"
+    "$HELPER_DIR/setup-passwordless-polkit.sh"
     "$HELPER_DIR/stow-dotfiles.sh"
 )
 REQUESTED_USER=""
