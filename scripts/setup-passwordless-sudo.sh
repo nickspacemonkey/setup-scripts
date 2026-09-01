@@ -13,6 +13,16 @@ fi
 
 SUDOERS_FILE="/etc/sudoers.d/${TARGET_USER}"
 TEMP_SUDOERS=""
+VISUDO="$(command -v visudo 2>/dev/null || true)"
+
+if [[ -z "$VISUDO" ]] && [[ -x /usr/sbin/visudo ]]; then
+    VISUDO="/usr/sbin/visudo"
+fi
+
+if [[ -z "$VISUDO" ]]; then
+    echo "ERROR: visudo was not found; install the sudo package and ensure its administration tools are available."
+    exit 1
+fi
 
 cleanup() {
     if [[ -n "$TEMP_SUDOERS" ]]; then
@@ -31,7 +41,7 @@ TEMP_SUDOERS="$(mktemp)"
 printf '%s ALL=(ALL:ALL) NOPASSWD: ALL\n' "$TARGET_USER" > "$TEMP_SUDOERS"
 
 # Validate before modifying the live sudoers configuration
-visudo -cf "$TEMP_SUDOERS"
+"$VISUDO" -cf "$TEMP_SUDOERS"
 
 install -m 0440 "$TEMP_SUDOERS" "$SUDOERS_FILE"
 

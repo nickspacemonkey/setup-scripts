@@ -32,6 +32,10 @@ fi
 
 set -uo pipefail
 
+# Root-only administration tools such as visudo and sshd live in sbin on
+# Debian, even when the invoking environment omits those directories.
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin${PATH:+:$PATH}"
+
 if (( EUID != 0 )); then
     echo "ERROR: This script must be run as root (for example: sudo sh setup.sh)."
     exit 1
