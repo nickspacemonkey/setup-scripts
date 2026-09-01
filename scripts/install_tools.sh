@@ -317,8 +317,8 @@ configure_alpine_automatic() {
     fi
     chmod 0600 "$root_crontab"
 
-    rc-update add dcron default
-    rc-service dcron start
+    rc-update add crond default
+    rc-service crond start
 }
 
 install_packages() {
@@ -442,7 +442,7 @@ install_packages() {
 
         apk add \
             openrc \
-            dcron \
+            busybox-openrc \
             sudo \
             git \
             tzdata \

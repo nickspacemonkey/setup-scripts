@@ -51,7 +51,7 @@ install_cron() {
     elif command -v zypper >/dev/null 2>&1; then
         zypper --non-interactive install cron
     elif command -v apk >/dev/null 2>&1; then
-        apk add dcron
+        apk add busybox busybox-openrc
     else
         echo "ERROR: Cannot install cron: unsupported package manager."
         return 1
@@ -69,8 +69,8 @@ start_cron() {
             fi
         done
     elif command -v rc-service >/dev/null 2>&1; then
-        rc-update add dcron default
-        rc-service dcron start
+        rc-update add crond default
+        rc-service crond start
         return
     fi
 
