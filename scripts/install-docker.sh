@@ -116,12 +116,35 @@ start_docker() {
     if command -v systemctl >/dev/null 2>&1; then
         systemctl enable --now docker.service
     elif command -v rc-update >/dev/null 2>&1 && command -v rc-service >/dev/null 2>&1; then
+        if command -v apk >/dev/null 2>&1; then
+            rc-update add cgroups default
+            rc-service cgroups start
+        fi
+
         rc-update add docker default
         rc-service docker start
     else
         echo "ERROR: No supported service manager was found to start Docker."
         exit 1
     fi
+}
+
+verify_docker_daemon() {
+    local attempt
+
+    for (( attempt = 0; attempt < 20; attempt++ )); do
+        if docker --host unix:///var/run/docker.sock info >/dev/null 2>&1; then
+            return
+        fi
+        sleep 1
+    done
+
+    echo "ERROR: Docker was started but its local daemon is not responding."
+    if [[ -s /var/log/docker.log ]]; then
+        echo "Docker daemon log:"
+        tail -n 100 /var/log/docker.log
+    fi
+    return 1
 }
 
 if command -v apt-get >/dev/null 2>&1; then
@@ -140,6 +163,7 @@ else
 fi
 
 start_docker
+verify_docker_daemon
 
 docker --version
 docker compose version
