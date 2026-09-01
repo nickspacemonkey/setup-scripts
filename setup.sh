@@ -241,6 +241,45 @@ fi
 
 export TARGET_USER TARGET_HOME
 
+configure_alpine_login_shell() {
+    local current_shell passwd_line
+
+    command -v apk >/dev/null 2>&1 || return
+
+    if [[ ! -x /bin/bash ]]; then
+        echo "ERROR: Bash is not installed at /bin/bash."
+        return 1
+    fi
+
+    current_shell="$(getent passwd "$TARGET_USER" | cut -d: -f7)"
+    if [[ "$current_shell" == "/bin/bash" ]]; then
+        return
+    fi
+
+    echo "Setting /bin/bash as the default shell for '$TARGET_USER'..."
+    if command -v usermod >/dev/null 2>&1; then
+        usermod --shell /bin/bash -- "$TARGET_USER"
+    elif command -v chsh >/dev/null 2>&1; then
+        chsh -s /bin/bash "$TARGET_USER"
+    else
+        # Alpine's base BusyBox installation has neither usermod nor chsh.
+        # Find the local passwd entry by field value so usernames that contain
+        # regex metacharacters cannot alter the sed command below.
+        passwd_line="$(awk -F: -v user="$TARGET_USER" '$1 == user { print NR; exit }' /etc/passwd)"
+        if [[ -z "$passwd_line" ]]; then
+            echo "ERROR: Cannot change the shell for non-local user '$TARGET_USER'."
+            return 1
+        fi
+        sed -i "${passwd_line}s|:[^:]*$|:/bin/bash|" /etc/passwd
+    fi
+
+    current_shell="$(getent passwd "$TARGET_USER" | cut -d: -f7)"
+    if [[ "$current_shell" != "/bin/bash" ]]; then
+        echo "ERROR: Failed to set /bin/bash as the default shell for '$TARGET_USER'."
+        return 1
+    fi
+}
+
 # Run install_tools.sh first
 if [[ -f "$INSTALL_SCRIPT" ]]; then
     echo "Running $INSTALL_SCRIPT..."
@@ -256,6 +295,10 @@ if [[ -f "$INSTALL_SCRIPT" ]]; then
     fi
 else
     echo "ERROR: $INSTALL_SCRIPT not found."
+    exit 1
+fi
+
+if ! configure_alpine_login_shell; then
     exit 1
 fi
 

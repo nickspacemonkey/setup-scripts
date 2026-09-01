@@ -441,6 +441,7 @@ install_packages() {
         enable_alpine_community_repository
 
         apk add \
+            bash \
             openrc \
             busybox-openrc \
             sudo \
@@ -549,6 +550,7 @@ fi
 echo
 echo "Installed versions:"
 echo "-------------------"
+command -v bash >/dev/null && bash --version | sed -n '1p'
 command -v sudo >/dev/null && sudo --version | sed -n '1p'
 command -v git >/dev/null && git --version
 command -v tmux >/dev/null && tmux -V
