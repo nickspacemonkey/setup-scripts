@@ -118,10 +118,17 @@ start_docker() {
     elif command -v rc-update >/dev/null 2>&1 && command -v rc-service >/dev/null 2>&1; then
         if command -v apk >/dev/null 2>&1; then
             rc-update add cgroups default
-            rc-service cgroups start
         fi
 
         rc-update add docker default
+        # Minimal VMs can have clock skew while packages are installed. Force
+        # OpenRC to include newly installed init scripts in its dependency cache.
+        rc-update -u
+
+        if command -v apk >/dev/null 2>&1; then
+            rc-service cgroups start
+        fi
+
         rc-service docker start
     else
         echo "ERROR: No supported service manager was found to start Docker."

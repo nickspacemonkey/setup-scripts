@@ -101,8 +101,10 @@ directory if necessary, and then performs these steps:
    pinned revisions.
 3. When the `docker` argument is supplied, installs and starts Docker Engine
    with Buildx and Compose using the host distribution's package format.
-   On Alpine, setup enables and starts the OpenRC cgroups service before
-   enabling and starting Docker, then verifies that the local daemon responds.
+   On Alpine, setup enables the OpenRC cgroups and Docker services, refreshes
+   OpenRC's dependency cache so Docker starts after a reboot even when the VM
+   clock changed during setup, starts both services in dependency order, and
+   verifies that the local daemon responds.
    Rocky Linux and AlmaLinux follow Docker's RHEL repository procedure,
    including removal of packages that conflict with Docker Engine. Setup also
    copies the bundled Docker Compose helper scripts into the selected user's
