@@ -275,7 +275,7 @@ export TARGET_USER TARGET_HOME
 configure_alpine_login_shell() {
     local current_shell passwd_line
 
-    command -v apk >/dev/null 2>&1 || return
+    command -v apk >/dev/null 2>&1 || return 0
 
     if [[ ! -x /bin/bash ]]; then
         echo "ERROR: Bash is not installed at /bin/bash."
