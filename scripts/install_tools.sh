@@ -220,6 +220,76 @@ configure_dnf_automatic() {
     systemctl enable --now setup-scripts-reboot-if-needed.timer
 }
 
+enable_alpine_community_repository() {
+    local repositories_file=/etc/apk/repositories
+    local community_repository main_repository
+
+    if [[ ! -f "$repositories_file" ]]; then
+        echo "ERROR: Alpine repository configuration was not found: $repositories_file"
+        return 1
+    fi
+
+    if awk '
+        /^[[:space:]]*#/ { next }
+        {
+            repository = $0
+            sub(/[[:space:]]+$/, "", repository)
+            if (repository ~ /\/community\/?$/) {
+                found = 1
+                exit
+            }
+        }
+        END { exit !found }
+    ' "$repositories_file"; then
+        apk update
+        return
+    fi
+
+    # Alpine installations commonly ship the community repository commented
+    # out. Prefer that entry so the configured mirror and release stay intact.
+    community_repository="$(
+        awk '
+            /^[[:space:]]*#/ {
+                repository = $0
+                sub(/^[[:space:]]*#[[:space:]]*/, "", repository)
+                sub(/[[:space:]]+$/, "", repository)
+                if (repository ~ /\/community\/?$/) {
+                    print repository
+                    exit
+                }
+            }
+        ' "$repositories_file"
+    )"
+
+    if [[ -z "$community_repository" ]]; then
+        main_repository="$(
+            awk '
+                /^[[:space:]]*#/ { next }
+                {
+                    repository = $0
+                    sub(/[[:space:]]+$/, "", repository)
+                    if (repository ~ /\/main\/?$/) {
+                        print repository
+                        exit
+                    }
+                }
+            ' "$repositories_file"
+        )"
+        main_repository="${main_repository%/}"
+
+        if [[ -z "$main_repository" ]]; then
+            echo "ERROR: Cannot derive Alpine's community repository without an active main repository."
+            return 1
+        fi
+
+        community_repository="${main_repository%/main}/community"
+    fi
+
+    echo "Enabling Alpine community repository: $community_repository"
+    printf '%s\n' "$community_repository" >> "$repositories_file"
+    apk update
+}
+
 configure_alpine_automatic() {
     local root_crontab=/etc/crontabs/root
 
@@ -368,6 +438,8 @@ install_packages() {
             helix
 
     elif command -v apk >/dev/null 2>&1; then
+        enable_alpine_community_repository
+
         apk add \
             openrc \
             dcron \

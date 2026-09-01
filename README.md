@@ -92,7 +92,8 @@ directory if necessary, and then performs these steps:
    configuration. On DNF-based systems, it enables DNF4 or DNF5 automatic
    updates and a daily 06:00 reboot-if-required timer. Alpine installs updates
    daily at 02:00 using root cron jobs and reboots at 06:00 when an update
-   replaced the running kernel. If a DNF distribution
+   replaced the running kernel; it also enables Alpine's community repository
+   when the installer left it disabled. If a DNF distribution
    does not provide a requested tool in its enabled native repositories, setup
    attempts to enable CRB/PowerTools and EPEL, then retries. If eza remains
    unavailable, setup installs its official release binary on x86-64 or ARM64.
