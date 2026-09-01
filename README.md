@@ -6,7 +6,7 @@ Git submodules.
 
 ## Prerequisites
 
-- Bash, installed automatically by the one-line bootstrap when necessary
+- Bash, installed automatically by the bootstrap or setup script when necessary
 - `sudo` access
 - Git, when cloning the repository normally
 - One of the supported package managers: APT, DNF, Pacman, Zypper, or APK
@@ -38,13 +38,13 @@ Or download it with `wget`:
 
 ```bash
 wget https://raw.githubusercontent.com/nickspacemonkey/setup-scripts/main/setup.sh
-sudo bash setup.sh
+sudo sh setup.sh
 ```
 
 To skip the username prompt, pass the account with `--user`:
 
 ```bash
-sudo bash setup.sh --user nick
+sudo sh setup.sh --user nick
 ```
 
 Docker installation is optional. Pass `docker` as the second argument, after
@@ -52,21 +52,21 @@ the username, to install
 and start Docker Engine with Buildx and Compose:
 
 ```bash
-sudo bash setup.sh nick docker
+sudo sh setup.sh nick docker
 ```
 
 To install Claude Code after the system tools and apply the repository's
 version-controlled settings, pass `claude`:
 
 ```bash
-sudo bash setup.sh nick claude
+sudo sh setup.sh nick claude
 ```
 
 The `ollama` argument retains the full setup behavior and can be combined
 explicitly with `claude`:
 
 ```bash
-sudo bash setup.sh nick ollama claude
+sudo sh setup.sh nick ollama claude
 ```
 
 Set `SETUP_SCRIPTS_CHECKOUT` to use a different checkout location.
@@ -76,7 +76,7 @@ Alternatively, clone the repository and run the main setup script:
 ```bash
 git clone https://github.com/nickspacemonkey/setup-scripts
 cd setup-scripts
-sudo bash setup.sh
+sudo sh setup.sh
 ```
 
 The script prompts for the user to configure, creates that account and its home
